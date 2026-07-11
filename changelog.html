@@ -1,36 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog — MongeCAD</title>
+<meta name="description" content="Přehled novinek, oprav a úprav v jednotlivých verzích aplikace MongeCAD.">
+<link rel="icon" type="image/svg+xml" href="img/icon-mc.svg">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1 id="changelog-mongecad">Changelog MongeCAD</h1>
-<h2 id="1-1-0-11-ervence-2026">1.1.0 — 11. července 2026</h2>
-<h3 id="novinky">Novinky</h3>
-<ul>
-  <li>Přidán nový nástroj ŠROUBOVICE.</li>
-  <li>Přidán changelog.</li>
-  <li>Doplnění průmětu objektů přemapováno na mezerník.</li>
-  <li>Kótu bodu lze změnit nebo přidat v editačním menu.</li>
-</ul>
-<h3 id="opravy">Opravy</h3>
-<ul>
-  <li>Upravena logika fillu průniku rotačních ploch.</li>
-  <li>Opraveno přejmenování objektů při vypnutém pojmenování.</li>
-  <li>Opraven a sjednocen postup zadávání a pojmenování jednoduchých objektů (přímky, stopy, body).</li>
-  <li>Opravena funkčnost klávesových zkratek.</li>
-  <li>Označení objektů pro dané konstrukce nyní akceptuje označení z listu objektů.</li>
-  <li>Opraveno zobrazování některých ikon na Windows.</li>
-  <li>Vrcholy mnohostěnů a mnohoúhelníků se vypisují v listu objektů jako podmnožina objektu.</li>
-  <li>Linux instalace si již také přivlastní <code>.monge</code> jako spustitelný soubor.</li>
-</ul>
-<h3 id="drobn-pravy">Drobné úpravy</h3>
-<ul>
-  <li>Drobné úpravy uživatelského rozhraní.</li>
-  <li>Přemapování několika klávesových zkratek.</li>
-  <li>Opraven popisek verze v hlavním menu.</li>
-</ul>
 
+<header class="site">
+  <div class="wrap">
+    <div class="site-top">
+      <a class="brand" href="index.html"><img src="img/icon-mc.svg" alt="">MongeCAD</a>
+      <a class="github-link" href="https://github.com/Munfajra/MongeCAD-releases" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.69-1.28-1.69-1.04-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.78 2.71 1.26 3.37.97.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.2.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg></a>
+      <a class="email-link" href="mailto:supportmongecad@gmail.com" aria-label="E-mail" title="supportmongecad@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+    </div>
+    <nav class="tabs">
+      <a href="index.html">Domů</a>
+      <a class="active" href="stazeni.html">Stažení</a>
+      <a href="o-programu.html">O programu</a>
+      <a href="navody.html">Návody</a>
+      <a href="podporit.html">Podpořit</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <section>
+      <h1>Changelog</h1>
+      <p class="lede">Přehled novinek, oprav a&nbsp;drobných úprav v&nbsp;jednotlivých verzích MongeCADu. Kliknutím na verzi zobrazíte podrobnosti.</p>
+    </section>
+
+    <section>
+      <div class="release-list">
+        <details class="release-entry">
+          <summary>
+            <span class="release-version">
+              <strong>Verze 1.1.0</strong>
+              <time datetime="2026-07-11">11. července 2026</time>
+            </span>
+          </summary>
+
+          <div class="release-body">
+            <h3>Novinky</h3>
+            <ul>
+              <li>Přidán nový nástroj ŠROUBOVICE.</li>
+              <li>Přidán changelog.</li>
+              <li>Doplnění průmětu objektů přemapováno na mezerník.</li>
+              <li>Kótu bodu lze změnit nebo přidat v editačním menu.</li>
+            </ul>
+
+            <h3>Opravy</h3>
+            <ul>
+              <li>Upravena logika fillu průniku rotačních ploch.</li>
+              <li>Opraveno přejmenování objektů při vypnutém pojmenování.</li>
+              <li>Opraven a sjednocen postup zadávání a pojmenování jednoduchých objektů (přímky, stopy, body).</li>
+              <li>Opravena funkčnost klávesových zkratek.</li>
+              <li>Označení objektů pro dané konstrukce nyní akceptuje označení z listu objektů.</li>
+              <li>Opraveno zobrazování některých ikon na Windows.</li>
+              <li>Vrcholy mnohostěnů a mnohoúhelníků se vypisují v listu objektů jako podmnožina objektu.</li>
+              <li>Linux instalace si již také přivlastní <code>.monge</code> jako spustitelný soubor.</li>
+            </ul>
+
+            <h3>Drobné úpravy</h3>
+            <ul>
+              <li>Drobné úpravy uživatelského rozhraní.</li>
+              <li>Přemapování několika klávesových zkratek.</li>
+              <li>Opraven popisek verze v hlavním menu.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>MongeCAD © 2026</span>
+  </div>
+</footer>
+
+<script src="lightbox.js" defer></script>
 </body>
 </html>
