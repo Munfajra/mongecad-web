@@ -127,6 +127,7 @@ p + p { margin-top: 12px; }
 
 .lede { max-width: 46em; color: var(--ink-soft); }
 .lede strong { color: var(--ink); }
+.release-link { margin-top: 16px; font-size: .95rem; }
 
 /* ---------- Hero (text + ilustrace) ---------- */
 .hero-row {
@@ -246,6 +247,66 @@ p + p { margin-top: 12px; }
   padding: 1px 6px;
 }
 
+/* ---------- Changelog ---------- */
+.release-list {
+  display: grid;
+  gap: 14px;
+  max-width: 760px;
+}
+.release-entry {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.release-entry[open] {
+  box-shadow: 0 8px 30px rgba(10, 20, 40, .07);
+}
+.release-entry summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 19px 22px;
+  cursor: pointer;
+  list-style: none;
+}
+.release-entry summary::marker { content: ""; }
+.release-entry summary::-webkit-details-marker { display: none; }
+.release-entry summary::after {
+  content: "+";
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent);
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 25px;
+  text-align: center;
+}
+.release-entry[open] summary::after { content: "−"; }
+.release-entry summary:hover { background: var(--accent-soft); }
+.release-entry summary:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.release-version { display: flex; flex-direction: column; gap: 2px; }
+.release-version strong { font-size: 1.1rem; }
+.release-version time { color: var(--ink-soft); font-size: .9rem; font-weight: 400; }
+.release-body {
+  padding: 0 22px 22px;
+  border-top: 1px solid var(--line);
+}
+.release-body h3 { margin-top: 20px; }
+.release-body h3:not(:first-child) { margin-top: 24px; }
+.release-body ul { margin-left: 20px; color: var(--ink-soft); }
+.release-body li + li { margin-top: 5px; }
+.release-body code {
+  font-size: .88em;
+  background: var(--accent-soft);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
 .warn {
   display: flex;
   gap: 12px;
@@ -291,4 +352,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space
   main { padding: 32px 0 44px; }
   nav.tabs a { padding: 7px 12px; font-size: .9rem; }
   .dl-item { padding: 20px 18px; }
+  .release-entry summary { padding: 17px 18px; }
+  .release-body { padding: 0 18px 20px; }
 }
