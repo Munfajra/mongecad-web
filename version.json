@@ -1,7 +1,36 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "downloadUrl": "https://github.com/Munfajra/MongeCAD-releases/releases/latest",
   "releaseUrl": "https://github.com/Munfajra/MongeCAD-releases/releases/latest",
   "releaseNotesUrl": "https://github.com/Munfajra/MongeCAD-releases/releases/latest",
-  "publishedAt": "2026-07-05"
+  "changelog": [
+    {
+      "title": "Novinky",
+      "items": [
+        "Přidán nový nástroj ŠROUBOVICE",
+        "Přidán changelog",
+        "Doplnění průmětu objektů přemapováno na mezerník",
+        "Kótu bodu lze změnit/přidat v edit menu"
+      ]
+    },
+    {
+      "title": "Opravy",
+      "items": [
+        "Upravena logika fillu průniku rotačních ploch",
+        "Opraveno přejmenování objektů při vypnutém pojmenování",
+        "Opraven a sjednocen flow zadávání a pojmenování jednoduchých objektů (přímky, stopy, body)",
+        "Opravena funkčnost klávesových zkratek",
+        "Označení objektů pro dané konstrukce nyní akceptuje označení z listu objektů",
+        "Opraveno zobrazování některých ikon na Windows",
+        "Vrcholy mnohostěnů a mnohoúhelníků se vypisují v listu objektů (jako podmnožina objektu)"
+
+      ]
+    },
+    {"title": "Minor tweaks",
+    "items":  [
+      "Drobné UI úpravy",
+      "Přemapování několika klávesových zkratek"
+    ]}
+  ],
+  "publishedAt": "2026-07-11"
 }
