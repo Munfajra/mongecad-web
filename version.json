@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.1.0",
   "downloadUrl": "https://github.com/Munfajra/MongeCAD-releases/releases/latest",
   "releaseUrl": "https://github.com/Munfajra/MongeCAD-releases/releases/latest",
   "releaseNotesUrl": "https://github.com/Munfajra/MongeCAD-releases/releases/latest",
@@ -11,7 +11,7 @@
         "Přidán changelog",
         "Doplnění průmětu objektů přemapováno na mezerník",
         "Kótu bodu lze změnit/přidat v edit menu"
-      ]
+             ]
     },
     {
       "title": "Opravy",
@@ -22,14 +22,16 @@
         "Opravena funkčnost klávesových zkratek",
         "Označení objektů pro dané konstrukce nyní akceptuje označení z listu objektů",
         "Opraveno zobrazování některých ikon na Windows",
-        "Vrcholy mnohostěnů a mnohoúhelníků se vypisují v listu objektů (jako podmnožina objektu)"
+        "Vrcholy mnohostěnů a mnohoúhelníků se vypisují v listu objektů (jako podmnožina objektu)",
+        "Linux instalace si již také přivlastní .monge jako spustitelný soubor"
 
       ]
     },
     {"title": "Minor tweaks",
     "items":  [
       "Drobné UI úpravy",
-      "Přemapování několika klávesových zkratek"
+      "Přemapování několika klávesových zkratek",
+            "Oprava popisku verze v hlavním menu"
     ]}
   ],
   "publishedAt": "2026-07-11"
