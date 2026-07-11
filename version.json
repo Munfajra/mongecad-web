@@ -1,38 +1,18 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "downloadUrl": "https://mongecad.cz/stazeni.html",
   "releaseUrl": "https://mongecad.cz/stazeni.html",
   "releaseNotesUrl": "https://mongecad.cz/changelog.html",
   "changelog": [
     {
-      "title": "Novinky",
-      "items": [
-        "Přidán nový nástroj ŠROUBOVICE",
-        "Přidán changelog",
-        "Doplnění průmětu objektů přemapováno na mezerník",
-        "Kótu bodu lze změnit/přidat v edit menu"
-             ]
-    },
-    {
       "title": "Opravy",
       "items": [
-        "Upravena logika fillu průniku rotačních ploch",
-        "Opraveno přejmenování objektů při vypnutém pojmenování",
-        "Opraven a sjednocen flow zadávání a pojmenování jednoduchých objektů (přímky, stopy, body)",
-        "Opravena funkčnost klávesových zkratek",
-        "Označení objektů pro dané konstrukce nyní akceptuje označení z listu objektů",
-        "Opraveno zobrazování některých ikon na Windows",
-        "Vrcholy mnohostěnů a mnohoúhelníků se vypisují v listu objektů (jako podmnožina objektu)",
-        "Linux instalace si již také přivlastní .monge jako spustitelný soubor"
-
-      ]
-    },
-    {"title": "Minor tweaks",
-    "items":  [
-      "Drobné UI úpravy",
-      "Přemapování několika klávesových zkratek",
-            "Oprava popisku verze v hlavním menu"
-    ]}
+        "Opraveno vykreslování křivek v OpenGL s jinými objekty ve scéně." ,
+        "Opravena chyba, kdy příležitostně doplnění druhého průmětu vzalo špatný vzor.",
+        "Opravena ikona u .monge souborů a běžící aplikace na linuxu.",
+        "Opraveno otevírání většího počtu souborů naráz."
+             ]
+    }
   ],
   "publishedAt": "2026-07-11"
 }
