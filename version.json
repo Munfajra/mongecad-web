@@ -1,18 +1,57 @@
 {
-  "version": "1.1.1",
+  "version": "1.2.0",
   "downloadUrl": "https://mongecad.cz/stazeni.html",
   "releaseUrl": "https://mongecad.cz/stazeni.html",
   "releaseNotesUrl": "https://mongecad.cz/changelog.html",
   "changelog": [
     {
+      "title": "Novinky",
+      "items": [
+        "Přidáno menu pro tisk výkresu, dostupné přes Ctrl+P nebo z hlavního panelu programu. Dialog přebírá momentální nastavení velikosti papíru.",
+        "Přidána funkce PŘÍMKOVÉ PLOCHY. Pro vytvoření zvolte tři řídicí prostorové křivky.",
+        "Řídicí křivky mohou být přímky, kuželosečky, obecné křivky nebo rovina jako nevlastní přímka pro vytvoření konoidu.",
+        "Zvlášť je podporován i kulový konoid daný přímkou, kulovou plochou a rovinou.",
+        "Podporovány jsou kuželosečkové válcové plochy a kuželosečkové konoidy (kruhový, eliptický, parabolický a hyperbolický).",
+        "Podporovány jsou zborcený hyperboloid, hyperbolický paraboloid a šroubový konoid.",
+        "Podporovány jsou speciální typy jako plocha Štramberské trúby, Whitneyho deštník, Plückerův a Küpperův konoid nebo Montpellierský oblouk.",
+        "Ostatní konoidy stupně vyššího než 3 je možné vytvořit pomocí obecné křivky.",
+        "Podporován je kulový konoid daný přímkou, řídicí rovinou nebo průmětnou a kulovou plochou.",
+        "Všechny přímkové plochy podporují nástroj PRŮNIK OBJEKTŮ."
+      ]
+    },
+    {
       "title": "Opravy",
       "items": [
-        "Opraveno vykreslování křivek v OpenGL s jinými objekty ve scéně." ,
-        "Opravena chyba, kdy příležitostně doplnění druhého průmětu vzalo špatný vzor.",
-        "Opravena ikona u .monge souborů a běžící aplikace na linuxu.",
-        "Opraveno otevírání většího počtu souborů naráz."
-             ]
+        "Pomocné přímky v režimu monge už řeší průsečíky i s objekty v druhé průmětně.",
+        "Kolmá válcová plocha: klik na elipsu v nárysu už neumístí horní podstavu týmž klikem; výběr a umístění jsou opět dva kroky.",
+        "Opravena výplň válcových ploch s degenerovaným průmětem podstavy, kde chyběl roh výplně.",
+        "Opraveny prohozené poloosy u osově zarovnaných řídicích elips, které způsobovaly špatný tvar horní podstavy válce a obrysů kužele či válce.",
+        "Skrytí os v axo režimu nyní skryje také axo trojúhelník.",
+        "Při konstrukci stop rovin, kružnic a elips se nyní kurzor přichytává k horizontálním a vertikálním směrům, je-li pravý kurzor dostatečně blízko.",
+        "V axo režimu se nyní kurzor při konstrukcích přichytává na rovnoběžky s osami v dané průmětně.",
+        "Doplnění přímek přes bokorysnou projekci už v povolených případech nevrací chybovou hlášku.",
+        "Tlačítko pro doplnění průmětů už reaguje okamžitě.",
+        "Soubory .monge mají po instalaci v Linuxu ikonu MongeCAD.",
+        "Výběr objektů je plynulejší napříč všemi režimy.",
+        "V rýsování v rovině se nyní správně detekují mnohoúhelníky.",
+        "Opravena funkčnost klávesových zkratek po přejmenování objektu v postranním menu."
+      ]
+    },
+    {
+      "title": "Nákresna",
+      "items": [
+        "Přidány vrcholy axonometrického trojúhelníku jako needitovatelné body X, Y, Z."
+      ]
+    },
+    {
+      "title": "3D okno",
+      "items": [
+        "OpenGL čárkované části jsou tenčí a mají hustší vzor se stálou délkou při zoomování kamery.",
+        "Objekty v pravém postranním seznamu lze rozkliknout, obsahují-li více částí.",
+        "Editace objektů má přehlednější a sjednocené menu.",
+        "Horní panel je přehlednější."
+      ]
     }
   ],
-  "publishedAt": "2026-07-11"
+  "publishedAt": "2026-07-24"
 }

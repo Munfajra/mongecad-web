@@ -36,6 +36,77 @@
     </section>
     <section>
       <div class="release-list">
+        <details class="release-entry" open>
+          <summary>
+            <span class="release-version">
+              <strong>Verze 1.2.0</strong>
+              <time datetime="2026-07-24"> - 24. července 2026</time>
+            </span>
+          </summary>
+
+          <div class="release-body">
+            <h3>Novinky</h3>
+            <h4>Přidáno menu pro tisk výkresu</h4>
+            <ul>
+              <li>Pro spuštění menu použijte zkratku <kbd>Ctrl</kbd>+<kbd>P</kbd> nebo je vyberte z hlavního panelu programu.</li>
+              <li>Dialog přebírá momentální nastavení velikosti papíru.</li>
+            </ul>
+
+            <h4>Přidána funkce PŘÍMKOVÉ PLOCHY</h4>
+            <ul>
+              <li>Pro vytvoření zvolte tři řídicí prostorové křivky.</li>
+              <li>Řídicí křivky mohou být přímky, kuželosečky, obecné křivky nebo rovina (jako nevlastní přímka) pro vytvoření konoidu.</li>
+              <li>Zvlášť je podporován i kulový konoid (přímka, kulová plocha, rovina).</li>
+            </ul>
+
+            <h4>Podporované typy přímkových ploch</h4>
+            <ul>
+              <li>Kuželosečkové válcové plochy.</li>
+              <li>Kuželosečkové konoidy (kruhový, eliptický, parabolický, hyperbolický).</li>
+              <li>Zborcený hyperboloid.</li>
+              <li>Hyperbolický paraboloid (sedlo).</li>
+              <li>Šroubový konoid.</li>
+              <li>Speciální typy jako plocha Štramberské trúby, Whitneyho deštník, Plückerův a Küpperův konoid nebo Montpellierský oblouk.</li>
+              <li>Ostatní konoidy stupně vyššího než 3 je možné vytvořit pomocí obecné křivky.</li>
+              <li>Kulový konoid daný přímkou, řídicí rovinou nebo průmětnou a kulovou plochou.</li>
+              <li>Všechny přímkové plochy podporují nástroj PRŮNIK OBJEKTŮ.</li>
+            </ul>
+
+            <h3>Opravy</h3>
+            <ul>
+              <li>Pomocné přímky v režimu monge už řeší průsečíky i s objekty v druhé průmětně.</li>
+              <li>Kolmá válcová plocha: klik na elipsu v nárysu už neumístí horní podstavu týmž klikem; výběr a umístění jsou opět dva kroky.</li>
+              <li>Opravena výplň válcových ploch s degenerovaným průmětem podstavy, kde chyběl roh výplně.</li>
+              <li>Opraveny prohozené poloosy u osově zarovnaných řídicích elips, které způsobovaly špatný tvar horní podstavy válce a obrysů kužele či válce.</li>
+              <li>Skrytí os v axo režimu nyní skryje také axo trojúhelník.</li>
+              <li>Při konstrukci stop rovin, kružnic a elips se nyní kurzor přichytává k horizontálním a vertikálním směrům, je-li pravý kurzor dostatečně blízko.</li>
+              <li>V axo režimu se nyní kurzor při konstrukcích přichytává na rovnoběžky s osami v dané průmětně.</li>
+              <li>Doplnění přímek přes bokorysnou projekci už v povolených případech nevrací chybovou hlášku.</li>
+              <li>Tlačítko pro doplnění průmětů už reaguje okamžitě.</li>
+              <li>Soubory <code>.monge</code> mají po instalaci v Linuxu ikonu MongeCAD.</li>
+              <li>Výběr objektů je plynulejší napříč všemi režimy.</li>
+              <li>V rýsování v rovině se nyní správně detekují mnohoúhelníky.</li>
+              <li>Opravena funkčnost klávesových zkratek po přejmenování objektu v postranním menu.</li>
+            </ul>
+
+            <h3>Nákresna</h3>
+            <ul>
+              <li>Přidány vrcholy axonometrického trojúhelníku. Jsou zobrazeny jako needitovatelné body X, Y, Z.</li>
+            </ul>
+
+            <h3>3D okno</h3>
+            <ul>
+              <li>OpenGL čárkované části jsou tenčí a mají hustší vzor se stálou délkou při zoomování kamery.</li>
+              <li>Vypsané objekty v pravém postranním seznamu nyní jdou rozkliknout, obsahují-li více částí.</li>
+              <li>Editace objektů má nyní přehlednější menu, které je vizuálně sjednoceno napříč všemi objekty.</li>
+              <li>Horní panel je nyní přehlednější.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
+    <section>
+      <div class="release-list">
         <details class="release-entry">
           <summary>
             <span class="release-version">
