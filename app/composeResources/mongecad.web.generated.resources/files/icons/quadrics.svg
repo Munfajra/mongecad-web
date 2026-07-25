@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="1.5"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   class="lucide lucide-cone-icon lucide-cone"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="g2"
+     transform="matrix(1.0365838,0,0,1.0365838,-0.24940614,1.1663392)">
+    <g
+       id="g1"
+       transform="matrix(0.71130088,0,0,0.71130088,-0.83582803,0.07541607)">
+      <path
+         d="m 20.9,18.55 -8,-15.98 a 1,1 0 0 0 -1.8,0 l -8,15.98"
+         id="path1" />
+      <ellipse
+         cx="12"
+         cy="19"
+         rx="9"
+         ry="3"
+         id="ellipse1" />
+    </g>
+    <g
+       id="g3"
+       transform="matrix(0.78516683,0,0,0.78516683,7.3136454,3.1822084)">
+      <path
+         d="M 5,6 A 7,3 0 1 0 19,6 7,3 0 1 0 5,6"
+         id="path2" />
+      <path
+         d="m 5,6 v 12 c 0,1.657 3.134,3 7,3 3.866,0 7,-1.343 7,-3 V 6"
+         id="path3" />
+    </g>
+  </g>
+</svg>

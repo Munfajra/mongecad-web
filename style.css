@@ -10,21 +10,28 @@
   --warn-bg: #fdf6e3;
   --warn-line: #e6d9a8;
   --warn-ink: #6b5d1f;
+  /* Pozadí rámu s aplikací – drží se barvy nákresny, ne karty webu,
+     aby při načítání neproblikla jiná barva. */
+  --app-bg: #ffffff;
   color-scheme: light dark;
 }
+/* Tmavý režim přebírá paletu aplikace (MongePaletteDark v modelu), aby
+   appka na stránce nepůsobila jako cizí prvek. Web měl dřív modře laděnou
+   tmavou, aplikace neutrálně šedou – dvě různé tmavé vedle sebe bily do očí. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #10151d;
-    --bg-card: #182030;
-    --ink: #e6ebf4;
-    --ink-soft: #9daabf;
-    --line: #2a3549;
-    --accent: #4d8bff;
-    --accent-ink: #0b1220;
-    --accent-soft: #1d2c47;
-    --warn-bg: #2b2611;
-    --warn-line: #57491c;
-    --warn-ink: #e3cf7a;
+    --bg: #191a1c;          /* MongePaletteDark.background */
+    --bg-card: #212225;
+    --ink: #dcdddf;         /* text aplikace je bílá na 66 %, pro delší texty o něco jasnější */
+    --ink-soft: #9a9b9e;
+    --line: #323236;        /* MongePaletteDark.base */
+    --accent: #4d7cdb;      /* MongePaletteDark.selected */
+    --accent-ink: #f2f5fb;
+    --accent-soft: #242938;
+    --warn-bg: #2a2617;
+    --warn-line: #55491f;
+    --warn-ink: #e0ce84;
+    --app-bg: #191a1c;
   }
 }
 
@@ -116,6 +123,22 @@ nav.tabs a.active::after {
 nav.tabs a:not(.active) {
   background: var(--bg-card);
 }
+/* Štítek u záložky MongeCAD Web – webová verze je nová a bez upozornění
+   by v řadě ostatních záložek zanikla. Až přestane být novinkou, stačí
+   <span class="tab-badge"> z navigace vymazat. */
+.tab-badge {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
 
 main { padding: 44px 0 56px; }
 main section + section { margin-top: 44px; }
@@ -127,6 +150,16 @@ p + p { margin-top: 12px; }
 
 .lede { max-width: 46em; color: var(--ink-soft); }
 .lede strong { color: var(--ink); }
+
+/* Přípony a názvy formátů (.monge). Uvnitř .dl-item má vlastní, výraznější
+   variantu - ta zůstává, protože je specifičtější. */
+code {
+  font-size: .88em;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 5px;
+}
 
 /* ---------- Hero (text + ilustrace) ---------- */
 .hero-row {
@@ -152,6 +185,83 @@ p + p { margin-top: 12px; }
 }
 .btn-primary:hover { text-decoration: none; filter: brightness(1.08); }
 .btn-note { font-size: .85rem; color: var(--ink-soft); margin-top: 8px; }
+
+/* Druhá, méně výrazná akce vedle hlavního tlačítka (např. "Zkusit v prohlížeči"
+   vedle "Stáhnout"). Stejná výška jako .btn-primary, aby řádek seděl. */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--bg-card);
+  color: var(--ink);
+  font-weight: 650;
+  font-size: 1.02rem;
+  padding: 12px 22px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.btn-secondary:hover { text-decoration: none; border-color: var(--accent); color: var(--accent); }
+.btn-secondary svg { flex: none; width: 20px; height: 20px; }
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+/* ---------- Panel webové verze (index.html) ---------- */
+.web-promo {
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px 28px 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+}
+.web-promo-text { flex: 1 1 320px; }
+.web-promo-side { flex: 1 1 260px; }
+.web-promo .eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.web-promo h2 { margin-bottom: 10px; }
+.web-promo .lede { max-width: none; }
+
+.web-promo ul { list-style: none; }
+.web-promo li {
+  position: relative;
+  padding: 5px 0 5px 26px;
+  font-size: .93rem;
+  color: var(--ink-soft);
+}
+.web-promo li::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: .82em;
+  width: 10px; height: 6px;
+  border-left: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+/* Body, které webová verze nemá – odlišené křížkem místo fajfky. */
+.web-promo li.no::before {
+  content: "×";
+  left: 3px; top: 4px;
+  width: auto; height: auto;
+  border: none;
+  transform: none;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
 
 /* ---------- Screenshot ---------- */
 .shot {
@@ -240,9 +350,8 @@ p + p { margin-top: 12px; }
 .dl-item ul { margin: 10px 0 0 20px; font-size: .93rem; color: var(--ink-soft); }
 .dl-item li { margin-top: 4px; }
 .dl-item code {
-  font-size: .88em;
   background: var(--accent-soft);
-  border-radius: 5px;
+  border: none;
   padding: 1px 6px;
 }
 
@@ -292,3 +401,55 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space
   nav.tabs a { padding: 7px 12px; font-size: .9rem; }
   .dl-item { padding: 20px 18px; }
 }
+
+/* ---------- MongeCAD Web (aplikace.html) ---------- */
+/* Appka dostane celý zbytek stránky pod hlavičkou webu – bez nadpisu,
+   poznámek a patičky, aby zbylo co nejvíc místa na nákresnu.
+   Stránka sama nescrolluje, scrollování si řeší appka uvnitř. */
+body.app-page { overflow: hidden; }
+
+.app-main {
+  padding: 0;
+  height: calc(100vh - var(--site-header-h, 132px));
+  min-height: 420px;
+}
+
+.app-frame { height: 100%; }
+
+#webApp {
+  height: 100%;
+  border-top: 1px solid var(--line);
+  background: var(--app-bg);
+}
+
+#webApp canvas { display: block; outline: none; }
+
+/* Maximalizace přes celé okno (tlačítko v liště aplikace).
+   Nepoužívá se Fullscreen API, protože ten vždy reaguje na Esc – a tu
+   potřebuje aplikace pro rušení konstrukce. Viz ui/Fullscreen.kt. */
+#webApp.app-maximized {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+
+/* Přechod mezi rámem ve stránce a plným oknem. Animuje se jen opacita –
+   samotný skok z toku stránky do position:fixed animovat nejde, ale
+   krátké prolnutí ho zjemní. */
+#webApp {
+  transition: opacity .16s ease-out;
+}
+#webApp.app-maximized {
+  animation: app-maximize-in .16s ease-out;
+}
+@keyframes app-maximize-in {
+  from { opacity: .4; }
+  to   { opacity: 1; }
+}
+
+body.app-maximized-host { overflow: hidden; }
+
+.app-fallback { padding: 24px; color: var(--ink-soft); }

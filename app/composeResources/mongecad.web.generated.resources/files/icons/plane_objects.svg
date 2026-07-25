@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   class="icon icon-tabler icons-tabler-outline icon-tabler-pentagon-plus"
+   version="1.1"
+   id="svg4"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <g
+     id="g4"
+     transform="matrix(0.63260026,0,0,0.63260026,4.4087969,4.4087969)">
+    <path
+       stroke="none"
+       d="M 0,0 H 24 V 24 H 0 Z"
+       fill="none"
+       id="path1" />
+    <path
+       d="M 12.5,21.005 H 7.042 A 1.978,1.978 0 0 1 5.161,19.638 L 2.097,10.208 A 1.978,1.978 0 0 1 2.816,7.996 l 8.021,-5.828 a 1.978,1.978 0 0 1 2.326,0 l 8.021,5.828 c 0.694,0.504 0.984,1.397 0.719,2.212 l -0.78,2.401"
+       id="path2" />
+    <path
+       d="m 16,19 h 6"
+       id="path3" />
+    <path
+       d="m 19,16 v 6"
+       id="path4" />
+  </g>
+  <rect
+     style="fill:none;fill-opacity:1;stroke-width:1.31669;stroke-linecap:round;stroke-miterlimit:3.7;stroke-dasharray:none"
+     id="rect4"
+     width="19.373867"
+     height="19.373867"
+     x="2.4527814"
+     y="2.2043986"
+     ry="4.0672703" />
+</svg>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="63.999996"
+   height="63.999996"
+   viewBox="0 0 16.933332 16.933332"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="matrix(1.487096,0,0,1.487096,-4.1872539,-4.0244472)">
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.586971;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0.468284;stroke-opacity:1;paint-order:stroke fill markers"
+       d="M 6.0980881,10.531328 10.814689,6.4344254"
+       id="path8" />
+    <circle
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.477212;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;paint-order:stroke fill markers"
+       id="circle3"
+       cx="11.228721"
+       cy="6.0203962"
+       r="0.94754726" />
+    <circle
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.477212;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;paint-order:stroke fill markers"
+       id="circle3-1"
+       cx="5.5538263"
+       cy="10.686531"
+       r="0.94754726" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.586971;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:0.117394, 1.17394;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       d="m 3.1092108,13.155419 2.346986,-2.02386 1.2837827,-1.2004618"
+       id="path8-8-6" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.586971;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:0.117394, 1.17394;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       d="M 10.746229,6.2996618 13.093215,4.2758022 14.376998,3.0753399"
+       id="path8-8-6-0" />
+  </g>
+</svg>

@@ -4,6 +4,9 @@
     <loc>https://mongecad.cz/</loc>
   </url>
   <url>
+    <loc>https://mongecad.cz/aplikace.html</loc>
+  </url>
+  <url>
     <loc>https://mongecad.cz/o-programu.html</loc>
   </url>
   <url>
@@ -14,8 +17,5 @@
   </url>
   <url>
     <loc>https://mongecad.cz/changelog.html</loc>
-  </url>
-  <url>
-    <loc>https://mongecad.cz/podporit.html</loc>
   </url>
 </urlset>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   sodipodi:docname="/tmp/ink_ext_XXXXXX.svgPUZGR3"
+   id="SVGRoot"
+   version="1.1"
+   viewBox="0 0 64 64"
+   height="64"
+   width="64"
+   inkscape:export-filename="parabola.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview14"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     showgrid="true"
+     inkscape:zoom="14.253648"
+     inkscape:cx="41.392913"
+     inkscape:cy="27.536811"
+     inkscape:window-width="2560"
+     inkscape:window-height="1368"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid20" />
+  </sodipodi:namedview>
+  <defs
+     id="defs9" />
+  <g
+     inkscape:label="Vrstva 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#000000;fill-opacity:0;stroke:#000000;stroke-width:4.907;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+       d="M 6.4222733,8.9003216 C 9.2687279,19.414193 12.115177,28.177405 14.961653,35.189704 c 2.846444,7.012269 5.692896,12.266688 8.539341,15.773708 2.846454,3.507012 5.692898,5.256141 8.539352,5.257893 2.846436,0.0017 5.692876,-1.754388 8.539332,-5.257893 2.846443,-3.503514 5.692964,-8.764911 8.53942,-15.773708 2.846449,-7.008798 5.692909,-15.775511 8.539343,-26.2893824"
+       title="x*x"
+       id="path996" />
+  </g>
+</svg>

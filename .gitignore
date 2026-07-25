@@ -1,3 +1,6 @@
 .idea/
 .claude/
 website-agent-prompt.md
+webapp/.gradle/
+webapp/build/
+webapp/kotlin-js-store/

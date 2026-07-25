@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101418">
+    <title>MongeCAD Web Lite</title>
+    <style>
+        html, body, #webApp {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background: #101418;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        canvas {
+            display: block;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+<div id="webApp"></div>
+<script>
+    // Pan canvasu jede pravým tlačítkem (stejně jako na desktopu). Prohlížeč ale
+    // na pravý mousedown otevírá kontextové menu a canvas tím přijde o pointer,
+    // takže Compose hned dostane release a tažení skončí po prvním pohybu.
+    document.addEventListener("contextmenu", (event) => event.preventDefault(), true);
+</script>
+<script>
+    // Compose 1.9 předává navigator.languages přímo do Intl.Locale.
+    // Linux může vrátit např. "en-US@posix", což není platný BCP-47 tag
+    // a bez normalizace zastaví celou první kompozici.
+    (() => {
+        const normalizeLocale = (value) => {
+            const candidate = String(value || "")
+                .split("@", 1)[0]
+                .replaceAll("_", "-")
+                .trim();
+
+            if (!candidate || candidate === "C" || candidate === "POSIX") {
+                return null;
+            }
+
+            try {
+                return new Intl.Locale(candidate).baseName;
+            } catch (_) {
+                return null;
+            }
+        };
+
+        const browserLocales = Array.from(navigator.languages || [navigator.language]);
+        const safeLocales = browserLocales
+            .map(normalizeLocale)
+            .filter((value, index, values) => value && values.indexOf(value) === index);
+
+        if (safeLocales.length === 0) {
+            safeLocales.push("cs-CZ");
+        }
+
+        Object.defineProperty(navigator, "language", {
+            configurable: true,
+            get: () => safeLocales[0],
+        });
+        Object.defineProperty(navigator, "languages", {
+            configurable: true,
+            get: () => safeLocales,
+        });
+    })();
+</script>
+<script src="mongecad-web.js"></script>
+</body>
+</html>
