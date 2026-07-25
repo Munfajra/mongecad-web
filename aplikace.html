@@ -98,12 +98,96 @@
         });
     })();
 
-    // Pan plátna jede pravým tlačítkem (stejně jako na desktopu). Prohlížeč by
-    // na pravý mousedown otevřel kontextové menu a plátno by přišlo o pointer,
-    // takže by tažení skončilo po prvním pohybu.
-    document.getElementById("webApp").addEventListener(
-        "contextmenu", (event) => event.preventDefault(), true
-    );
+    // Canvas používá pravý/prostřední drag pro pan a vlastní touch gesta.
+    // Potlačíme kontextové menu, autoscroll prostředního tlačítka a nativní
+    // navigační gesto tam, kde prohlížeč respektuje preventDefault().
+    (() => {
+        const webApp = document.getElementById("webApp");
+        const trackCanvasPointer = (event) => {
+            const navigationButton = event.button === 1 || event.button === 2;
+            const navigationDrag = (event.buttons & 6) !== 0;
+            globalThis.__mongecadCanvasPointerType = event.pointerType || "mouse";
+            globalThis.__mongecadCanvasNavigationActive =
+                event.type !== "pointerup" &&
+                event.type !== "pointercancel" &&
+                (navigationButton || navigationDrag);
+        };
+        const preventCanvasMouseAction = (event) => {
+            const navigationButton = event.button === 1 || event.button === 2;
+            const navigationDrag = (event.buttons & 6) !== 0;
+            if (navigationButton || navigationDrag) event.preventDefault();
+        };
+
+        webApp.addEventListener("contextmenu", preventCanvasMouseAction, true);
+        webApp.addEventListener("auxclick", preventCanvasMouseAction, true);
+        webApp.addEventListener("mousedown", preventCanvasMouseAction, true);
+        webApp.addEventListener("mousemove", preventCanvasMouseAction, true);
+        webApp.addEventListener("mouseup", preventCanvasMouseAction, true);
+        webApp.addEventListener("pointerdown", trackCanvasPointer, true);
+        webApp.addEventListener("pointermove", trackCanvasPointer, true);
+        webApp.addEventListener("pointerup", trackCanvasPointer, true);
+        webApp.addEventListener("pointercancel", trackCanvasPointer, true);
+    })();
+
+    // Skiko kreslí přes WebGL2. Vivaldi/Chromium může při spuštění videa na
+    // jiné kartě uvolnit výkonný GPU kontext. Preferujeme úsporný kontext
+    // (pro 2D rýsování stačí) a dovolíme prohlížeči ztracený kontext obnovit.
+    (() => {
+        const originalGetContext = HTMLCanvasElement.prototype.getContext;
+        let recoveryTimer = null;
+
+        const hideRecovery = () => {
+            clearTimeout(recoveryTimer);
+            recoveryTimer = null;
+            document.querySelector(".app-render-recovery")?.remove();
+        };
+
+        const showRecovery = () => {
+            if (document.querySelector(".app-render-recovery")) return;
+            const overlay = document.createElement("div");
+            overlay.className = "app-render-recovery";
+            overlay.setAttribute("role", "alert");
+
+            const content = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = "Prohlížeč přerušil vykreslování";
+            const text = document.createElement("div");
+            text.textContent = "Zkus zavřít náročné video na jiné kartě a obnovit aplikaci.";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Obnovit aplikaci";
+            button.addEventListener("click", () => window.location.reload());
+
+            content.append(title, text, button);
+            overlay.appendChild(content);
+            document.querySelector(".app-frame")?.appendChild(overlay);
+        };
+
+        const monitorContext = (canvas) => {
+            if (canvas.__mongecadContextMonitor) return;
+            canvas.__mongecadContextMonitor = true;
+            canvas.addEventListener("webglcontextlost", (event) => {
+                event.preventDefault();
+                clearTimeout(recoveryTimer);
+                recoveryTimer = setTimeout(showRecovery, 1500);
+            });
+            canvas.addEventListener("webglcontextrestored", () => {
+                hideRecovery();
+                window.dispatchEvent(new Event("resize"));
+            });
+        };
+
+        HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+            const isWebGl = type === "webgl" || type === "webgl2";
+            if (!isWebGl) return originalGetContext.call(this, type, attributes);
+
+            monitorContext(this);
+            const stableAttributes = Object.assign({}, attributes || {}, {
+                powerPreference: "low-power",
+            });
+            return originalGetContext.call(this, type, stableAttributes);
+        };
+    })();
 </script>
 <script>
     // GitHub Pages cachuje soubory přibližně 10 minut. Webpack přitom při každém

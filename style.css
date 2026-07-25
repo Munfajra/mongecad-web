@@ -414,15 +414,46 @@ body.app-page { overflow: hidden; }
   min-height: 420px;
 }
 
-.app-frame { height: 100%; }
+.app-frame {
+  position: relative;
+  height: 100%;
+}
 
 #webApp {
   height: 100%;
   border-top: 1px solid var(--line);
   background: var(--app-bg);
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 #webApp canvas { display: block; outline: none; }
+
+.app-render-recovery {
+  position: absolute;
+  inset: 18px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--app-bg) 94%, transparent);
+  color: var(--ink);
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.app-render-recovery button {
+  margin-top: 14px;
+  padding: 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+}
 
 /* Maximalizace přes celé okno (tlačítko v liště aplikace).
    Nepoužívá se Fullscreen API, protože ten vždy reaguje na Esc – a tu

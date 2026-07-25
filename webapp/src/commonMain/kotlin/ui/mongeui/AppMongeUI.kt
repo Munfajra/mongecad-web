@@ -36,6 +36,8 @@ import state.MongeState
 import state.snapMonge.computeSnappedPoint
 import ui.WebCursor
 import ui.createAxoCursor
+import ui.handleCanvasNavigationEvent
+import ui.isCanvasClickDown
 import ui.mongeui.toolbar.LeftPanelToolbar
 import ui.mongeui.toolbar.MongeToolbar
 import ui.mongeui.toolbar.rightDescriptionBar.RightSidebar
@@ -263,8 +265,13 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                             val event = awaitPointerEvent()
                                             val change = event.changes.firstOrNull()
                                             if (change != null) {
+                                                val navigationHandled =
+                                                    handleCanvasNavigationEvent(event, state)
                                                 state.cursorPosition = change.position
-                                                if (change.changedToDown() && event.buttons.isPrimaryPressed) {
+                                                if (
+                                                    !navigationHandled &&
+                                                    isCanvasClickDown(change, event, state)
+                                                ) {
                                                     handleClick(
                                                         cursor = state.cursorPosition,
                                                         snappedPointLogical = snappedPointLogical,
@@ -386,44 +393,6 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
 
                                                     state.scale = newScale
                                                     state.canvasOffset = cursorScreen - logicalAtCursor * state.scale
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                // Pan pravým tlačítkem
-                                .pointerInput(Unit) {
-                                    awaitPointerEventScope {
-                                        while (true) {
-                                            val event = awaitPointerEvent(PointerEventPass.Initial)
-                                            val change = event.changes.firstOrNull() ?: continue
-
-                                            // Desktop tu má navíc `&& change.pressed`. V prohlížeči ale
-                                            // u tažení pravým tlačítkem `pressed` na Move eventech drží
-                                            // jen levé tlačítko, takže by pan skončil hned po prvním
-                                            // pohybu. Stav tlačítka spolehlivě říká už `buttons`.
-                                            val rightDown = event.buttons.isSecondaryPressed
-
-                                            if (rightDown) {
-                                                state.isPanning = true
-                                                state.stopSnap = System.currentTimeMillis() + 200
-
-                                                val drag = change.positionChange()
-                                                if (drag != Offset.Zero) {
-                                                    val flipX =
-                                                        (state.xAxisDirection == XAxisDirection.POSITIVE_LEFT)
-                                                    val flipY =
-                                                        (state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP)
-
-                                                    val fixedDrag = panDragToCanvasOffsetDelta(drag, flipX, flipY)
-                                                    state.canvasOffset += fixedDrag
-                                                }
-
-                                                change.consume()
-                                            } else {
-                                                if (state.isPanning) {
-                                                    state.isPanning = false
-                                                    state.stopSnap = System.currentTimeMillis() + 80
                                                 }
                                             }
                                         }

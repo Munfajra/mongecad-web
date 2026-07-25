@@ -14,6 +14,11 @@
             overflow: hidden;
         }
 
+        #webApp {
+            touch-action: none;
+            overscroll-behavior: contain;
+        }
+
         body {
             background: #101418;
             font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -28,10 +33,61 @@
 <body>
 <div id="webApp"></div>
 <script>
-    // Pan canvasu jede pravým tlačítkem (stejně jako na desktopu). Prohlížeč ale
-    // na pravý mousedown otevírá kontextové menu a canvas tím přijde o pointer,
-    // takže Compose hned dostane release a tažení skončí po prvním pohybu.
-    document.addEventListener("contextmenu", (event) => event.preventDefault(), true);
+    // Canvas používá pravý/prostřední drag pro pan a vlastní touch gesta.
+    const webApp = document.getElementById("webApp");
+    const trackCanvasPointer = (event) => {
+        const navigationButton = event.button === 1 || event.button === 2;
+        const navigationDrag = (event.buttons & 6) !== 0;
+        globalThis.__mongecadCanvasPointerType = event.pointerType || "mouse";
+        globalThis.__mongecadCanvasNavigationActive =
+            event.type !== "pointerup" &&
+            event.type !== "pointercancel" &&
+            (navigationButton || navigationDrag);
+    };
+    const preventCanvasMouseAction = (event) => {
+        const navigationButton = event.button === 1 || event.button === 2;
+        const navigationDrag = (event.buttons & 6) !== 0;
+        if (navigationButton || navigationDrag) event.preventDefault();
+    };
+    webApp.addEventListener("contextmenu", preventCanvasMouseAction, true);
+    webApp.addEventListener("auxclick", preventCanvasMouseAction, true);
+    webApp.addEventListener("mousedown", preventCanvasMouseAction, true);
+    webApp.addEventListener("mousemove", preventCanvasMouseAction, true);
+    webApp.addEventListener("mouseup", preventCanvasMouseAction, true);
+    webApp.addEventListener("pointerdown", trackCanvasPointer, true);
+    webApp.addEventListener("pointermove", trackCanvasPointer, true);
+    webApp.addEventListener("pointerup", trackCanvasPointer, true);
+    webApp.addEventListener("pointercancel", trackCanvasPointer, true);
+
+    // Úsporný WebGL kontext je stabilnější při souběžném přehrávání videa.
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+    let recoveryTimer = null;
+    const monitorContext = (canvas) => {
+        if (canvas.__mongecadContextMonitor) return;
+        canvas.__mongecadContextMonitor = true;
+        canvas.addEventListener("webglcontextlost", (event) => {
+            event.preventDefault();
+            clearTimeout(recoveryTimer);
+            recoveryTimer = setTimeout(
+                () => console.error("MongeCAD: WebGL context nebyl obnoven."),
+                1500
+            );
+        });
+        canvas.addEventListener("webglcontextrestored", () => {
+            clearTimeout(recoveryTimer);
+            window.dispatchEvent(new Event("resize"));
+        });
+    };
+    HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+        const isWebGl = type === "webgl" || type === "webgl2";
+        if (!isWebGl) return originalGetContext.call(this, type, attributes);
+        monitorContext(this);
+        return originalGetContext.call(
+            this,
+            type,
+            Object.assign({}, attributes || {}, { powerPreference: "low-power" })
+        );
+    };
 </script>
 <script>
     // Compose 1.9 předává navigator.languages přímo do Intl.Locale.

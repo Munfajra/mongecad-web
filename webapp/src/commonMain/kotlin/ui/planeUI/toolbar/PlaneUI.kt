@@ -36,6 +36,8 @@ import state.snapMonge.computeSnappedPoint
 import ui.mongeui.VerticalResizeHandleOverlay
 import ui.planeUI.toolbar.rightDescriptionBar.RightSidebarPlane
 import ui.theme.LocalMongeDimens
+import ui.handleCanvasNavigationEvent
+import ui.isCanvasClickDown
 import utils.cursorToScreen
 import utils.getLogicalCursor
 
@@ -220,11 +222,16 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                             val event = awaitPointerEvent()
                                             val change = event.changes.firstOrNull() ?: continue
 
+                                            val navigationHandled =
+                                                handleCanvasNavigationEvent(event, state)
                                             val pScreen = change.position
                                             state.cursorPosition = pScreen
 
 
-                                            if (change.changedToDown() && event.buttons.isPrimaryPressed) {
+                                            if (
+                                                !navigationHandled &&
+                                                isCanvasClickDown(change, event, state)
+                                            ) {
                                                 handleClick(
                                                     cursor = pScreen, // pořád screen
                                                     snappedPointLogical = snappedPointLogical,
@@ -355,29 +362,6 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                     }
                                 }
                             }
-                            // Pan pravým tlačítkem
-                            .pointerInput(Unit) {
-                                awaitPointerEventScope {
-                                    while (true) {
-                                        val event = awaitPointerEvent()
-                                        val change = event.changes.firstOrNull() ?: continue
-                                        val yGoesUp = state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP
-                                        val xGoesUp = state.xAxisDirection == XAxisDirection.POSITIVE_LEFT
-
-                                        if (change.pressed && event.buttons.isSecondaryPressed) {
-                                            val drag = change.positionChange()
-                                            if (drag.getDistance() > 0f) {
-
-                                                val dy = if (yGoesUp) -drag.y else drag.y
-                                                val dx = if (xGoesUp) -drag.x else drag.x
-                                                val fixedDrag = Offset(dx, dy)
-                                                state.canvasOffset += fixedDrag
-                                            }
-                                            change.consume()
-                                        }
-                                    }
-                                }
-                            }
                             .onSizeChanged { state.canvasSizePx = it }
                     ) {
                         Box(
@@ -426,4 +410,3 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
     Dialogs(state,requestGlobalFocus)
     //dolní lištička
 }
-
