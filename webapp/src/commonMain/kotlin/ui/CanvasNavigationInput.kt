@@ -52,8 +52,7 @@ fun handleCanvasNavigationEvent(
 
     val change = event.changes.firstOrNull() ?: return false
     val browserPointerType = browserCanvasPointerType()
-    val isBrowserStylus =
-        change.type == PointerType.Mouse && browserPointerType == "pen"
+    val isBrowserStylus = browserPointerType == "pen"
     val isBrowserTouch =
         change.type == PointerType.Mouse && browserPointerType == "touch"
     val navigationMouseButtonDown =
@@ -64,7 +63,11 @@ fun handleCanvasNavigationEvent(
         state.isPanning && event.type != PointerEventType.Release
 
     val isTouchPan =
-        (change.type == PointerType.Touch || isBrowserTouch) && change.pressed
+        (
+            (change.type == PointerType.Touch && !isBrowserStylus) ||
+                isBrowserTouch
+            ) &&
+            change.pressed
     val isStylusPan =
         (
             change.type == PointerType.Stylus ||
@@ -106,8 +109,7 @@ fun isCanvasClickDown(
     if (!change.changedToDown()) return false
 
     val browserPointerType = browserCanvasPointerType()
-    val isBrowserStylus =
-        change.type == PointerType.Mouse && browserPointerType == "pen"
+    val isBrowserStylus = browserPointerType == "pen"
     if (isBrowserStylus) return state.drawobjects != Mongeobjects.NONE
     if (change.type == PointerType.Mouse && browserPointerType == "touch") return false
 
@@ -119,7 +121,7 @@ fun isCanvasClickDown(
 }
 
 /**
- * Compose Web 1.9.x převádí prohlížečové události stylusu na myš. Malý
+ * Compose Web 1.9.x převádí prohlížečové události stylusu na myš nebo dotyk. Malý
  * platformní bridge zachová původní `PointerEvent.pointerType` a stav
  * navigačního tlačítka, aby šel stylus od myši spolehlivě odlišit.
  */
