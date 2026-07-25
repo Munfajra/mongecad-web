@@ -105,6 +105,15 @@
         "contextmenu", (event) => event.preventDefault(), true
     );
 </script>
-<script src="app/mongecad-web.js"></script>
+<script>
+    // GitHub Pages cachuje soubory přibližně 10 minut. Webpack přitom při každém
+    // buildu vytvoří nový hashovaný .wasm a starý odstraní; cachovaný JS by pak
+    // žádal už neexistující Wasm a dostal místo něj HTML stránku 404. Jedinečný
+    // query parametr stojí jen zhruba 66 KiB gzip na obnovení, ale drží JS a
+    // jeho Wasm vždy ze stejného nasazení.
+    const appScript = document.createElement("script");
+    appScript.src = `app/mongecad-web.js?v=${Date.now()}`;
+    document.body.appendChild(appScript);
+</script>
 </body>
 </html>
