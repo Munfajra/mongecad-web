@@ -37,7 +37,7 @@ import state.snapMonge.computeSnappedPoint
 import ui.WebCursor
 import ui.createAxoCursor
 import ui.handleCanvasNavigationEvent
-import ui.isCanvasClickDown
+import ui.isCanvasClickGesture
 import ui.mongeui.toolbar.LeftPanelToolbar
 import ui.mongeui.toolbar.MongeToolbar
 import ui.mongeui.toolbar.rightDescriptionBar.RightSidebar
@@ -122,6 +122,158 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
             state.pendingMongeModeChange = null
         }
     }
+
+    // Blok se musí zapamatovat. Compose porovnává lambdu pointerInputu podle
+    // identity, takže nová instance při každé rekompozici zruší rozpracované
+    // gesto – a rekompozice tu nastává při každém pohybu kurzoru. Část dotyků
+    // se pak ztratila: každé druhé ťuknutí prstem spadlo do zrušeného handleru.
+    val canvasPointerHandler: suspend PointerInputScope.() -> Unit =
+        remember(state) {
+            {
+                                        // Jediný awaitPointerEventScope na celou dobu života plátna.
+                            // Kdyby se zakládal znovu pro každou událost, všechno, co
+                            // dorazí mezi opuštěním a novým vstupem, se zahodí – při
+                            // vytížené kompozici (náhledy konstrukcí) tak mizelo
+                            // zvednutí prstu i druhý dotek dvouprstého gesta.
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val change = event.changes.firstOrNull()
+                                    if (change != null) {
+                                        val navigationHandled =
+                                            handleCanvasNavigationEvent(event, state)
+                                        state.cursorPosition = change.position
+                                        if (
+                                            !navigationHandled &&
+                                            isCanvasClickGesture(change, event, state)
+                                        ) {
+                                            handleClick(
+                                                cursor = state.cursorPosition,
+                                                snappedPointLogical = snappedPointLogical,
+                                                state = state,
+                                                change = change
+                                            )
+                                        }
+
+                                        val isSecondaryPressed = event.buttons.isSecondaryPressed
+
+                                        // Pravý klik mění orientaci jen ve fázích, ve kterých
+                                        // je směr součástí právě rozpracované konstrukce.
+                                        // Stejné chování používá desktopová MONGE obrazovka.
+                                        if (!state.wasSecondaryPressed && isSecondaryPressed) {
+                                            if (
+                                                state.drawobjects == Mongeobjects.PLATONIC_SOLID &&
+                                                state.pendingPlatonicPolygonId != null
+                                            ) {
+                                                state.platonicFlip = !state.platonicFlip
+                                                state.triggerRedraw++
+                                            } else if (
+                                                state.drawobjects == Mongeobjects.CONICARC ||
+                                                state.drawobjects == Mongeobjects.CONICARCAS
+                                            ) {
+                                                val conicId = state.activeConicIdForArc
+                                                if (conicId != null) {
+                                                    val isCircle = when (state.mongeMode) {
+                                                        DrawingModeMonge.PUDORYS ->
+                                                            state.circlesPudorys.any { it.id == conicId }
+
+                                                        DrawingModeMonge.NARYS ->
+                                                            state.circlesNarys.any { it.id == conicId }
+                                                    }
+
+                                                    val current = state.activeArcMode
+                                                        ?: if (isCircle) {
+                                                            state.circleArcMode[conicId]
+                                                        } else {
+                                                            state.ellipseArcMode[conicId]
+                                                        }
+                                                        ?: ArcMode.SHORTEST
+
+                                                    val next = when (current) {
+                                                        ArcMode.CCW -> ArcMode.CW
+                                                        ArcMode.CW -> ArcMode.CCW
+                                                        ArcMode.SHORTEST -> ArcMode.CW
+                                                        ArcMode.LONGEST -> ArcMode.CCW
+                                                    }
+
+                                                    state.activeArcMode = next
+                                                    if (isCircle) {
+                                                        state.circleArcMode[conicId] = next
+                                                    } else {
+                                                        state.ellipseArcMode[conicId] = next
+                                                    }
+                                                }
+                                            } else {
+                                                val arcDataComplete =
+                                                    state.drawobjects == Mongeobjects.ARC &&
+                                                        (
+                                                            (
+                                                                state.arc.arcCenterNarys != null &&
+                                                                    state.arc.arcRadiusPointNarys != null
+                                                                ) ||
+                                                                (
+                                                                    state.arc.arcCenterPudorys != null &&
+                                                                        state.arc.arcRadiusPointPudorys != null
+                                                                    ) ||
+                                                                (
+                                                                    state.pendingPoint1 != null &&
+                                                                        state.pendingPoint2 != null
+                                                                    )
+                                                            )
+
+                                                val phaseAllowsFlip = state.projectionPhase in listOf(
+                                                    "distance_target_place",
+                                                    "angle_new_ray",
+                                                )
+
+                                                if (arcDataComplete || phaseAllowsFlip) {
+                                                    state.arc.arcDirectionClockwise =
+                                                        !state.arc.arcDirectionClockwise
+                                                }
+                                            }
+                                        }
+
+                                        state.wasSecondaryPressed = isSecondaryPressed
+
+                                        val isInteraction = event.type == PointerEventType.Scroll ||
+                                                event.buttons.isPrimaryPressed ||
+                                                event.buttons.isSecondaryPressed ||
+                                                change.changedToDown() ||
+                                                change.changedToUp()
+                                        if (isInteraction) change.consume()
+
+                                        // Zoom kolečkem
+                                        if (event.type == PointerEventType.Scroll) {
+                                            val scroll = change.scrollDelta
+                                            val zoomFactor = 1.3f
+                                            val oldScale = state.scale
+                                            val newScale =
+                                                (state.scale * if (scroll.y > 0f) (1 / zoomFactor) else zoomFactor)
+                                                    .coerceIn(1f, 50f)
+
+                                            if (newScale == oldScale) continue
+
+                                            val cursor = state.cursorPosition
+
+                                            val cursorScreen = cursorToScreen(
+                                                cursor = cursor,
+                                                canvasWidth = state.canvasWidth,
+                                                canvasHeight = state.canvasHeight,
+                                                state.xAxisDirection == XAxisDirection.POSITIVE_LEFT,
+                                                state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP
+                                            )
+
+                                            val logicalAtCursor =
+                                                (cursorScreen - state.canvasOffset) / oldScale
+
+                                            state.scale = newScale
+                                            state.canvasOffset = cursorScreen - logicalAtCursor * state.scale
+                                        }
+                                    }
+                                }
+                            }
+            }
+        }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -259,145 +411,7 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                 .windowCursor(desiredCursor)
                                 .focusRequester(state.focusRequester)
                                 .focusable()
-                                .pointerInput(Unit) {
-                                    while (true) {
-                                        awaitPointerEventScope {
-                                            val event = awaitPointerEvent()
-                                            val change = event.changes.firstOrNull()
-                                            if (change != null) {
-                                                val navigationHandled =
-                                                    handleCanvasNavigationEvent(event, state)
-                                                state.cursorPosition = change.position
-                                                if (
-                                                    !navigationHandled &&
-                                                    isCanvasClickDown(change, event, state)
-                                                ) {
-                                                    handleClick(
-                                                        cursor = state.cursorPosition,
-                                                        snappedPointLogical = snappedPointLogical,
-                                                        state = state,
-                                                        change = change
-                                                    )
-                                                }
-
-                                                val isSecondaryPressed = event.buttons.isSecondaryPressed
-
-                                                // Pravý klik mění orientaci jen ve fázích, ve kterých
-                                                // je směr součástí právě rozpracované konstrukce.
-                                                // Stejné chování používá desktopová MONGE obrazovka.
-                                                if (!state.wasSecondaryPressed && isSecondaryPressed) {
-                                                    if (
-                                                        state.drawobjects == Mongeobjects.PLATONIC_SOLID &&
-                                                        state.pendingPlatonicPolygonId != null
-                                                    ) {
-                                                        state.platonicFlip = !state.platonicFlip
-                                                        state.triggerRedraw++
-                                                    } else if (
-                                                        state.drawobjects == Mongeobjects.CONICARC ||
-                                                        state.drawobjects == Mongeobjects.CONICARCAS
-                                                    ) {
-                                                        val conicId = state.activeConicIdForArc
-                                                        if (conicId != null) {
-                                                            val isCircle = when (state.mongeMode) {
-                                                                DrawingModeMonge.PUDORYS ->
-                                                                    state.circlesPudorys.any { it.id == conicId }
-
-                                                                DrawingModeMonge.NARYS ->
-                                                                    state.circlesNarys.any { it.id == conicId }
-                                                            }
-
-                                                            val current = state.activeArcMode
-                                                                ?: if (isCircle) {
-                                                                    state.circleArcMode[conicId]
-                                                                } else {
-                                                                    state.ellipseArcMode[conicId]
-                                                                }
-                                                                ?: ArcMode.SHORTEST
-
-                                                            val next = when (current) {
-                                                                ArcMode.CCW -> ArcMode.CW
-                                                                ArcMode.CW -> ArcMode.CCW
-                                                                ArcMode.SHORTEST -> ArcMode.CW
-                                                                ArcMode.LONGEST -> ArcMode.CCW
-                                                            }
-
-                                                            state.activeArcMode = next
-                                                            if (isCircle) {
-                                                                state.circleArcMode[conicId] = next
-                                                            } else {
-                                                                state.ellipseArcMode[conicId] = next
-                                                            }
-                                                        }
-                                                    } else {
-                                                        val arcDataComplete =
-                                                            state.drawobjects == Mongeobjects.ARC &&
-                                                                (
-                                                                    (
-                                                                        state.arc.arcCenterNarys != null &&
-                                                                            state.arc.arcRadiusPointNarys != null
-                                                                        ) ||
-                                                                        (
-                                                                            state.arc.arcCenterPudorys != null &&
-                                                                                state.arc.arcRadiusPointPudorys != null
-                                                                            ) ||
-                                                                        (
-                                                                            state.pendingPoint1 != null &&
-                                                                                state.pendingPoint2 != null
-                                                                            )
-                                                                    )
-
-                                                        val phaseAllowsFlip = state.projectionPhase in listOf(
-                                                            "distance_target_place",
-                                                            "angle_new_ray",
-                                                        )
-
-                                                        if (arcDataComplete || phaseAllowsFlip) {
-                                                            state.arc.arcDirectionClockwise =
-                                                                !state.arc.arcDirectionClockwise
-                                                        }
-                                                    }
-                                                }
-
-                                                state.wasSecondaryPressed = isSecondaryPressed
-
-                                                val isInteraction = event.type == PointerEventType.Scroll ||
-                                                        event.buttons.isPrimaryPressed ||
-                                                        event.buttons.isSecondaryPressed ||
-                                                        change.changedToDown() ||
-                                                        change.changedToUp()
-                                                if (isInteraction) change.consume()
-
-                                                // Zoom kolečkem
-                                                if (event.type == PointerEventType.Scroll) {
-                                                    val scroll = change.scrollDelta
-                                                    val zoomFactor = 1.3f
-                                                    val oldScale = state.scale
-                                                    val newScale =
-                                                        (state.scale * if (scroll.y > 0f) (1 / zoomFactor) else zoomFactor)
-                                                            .coerceIn(1f, 50f)
-
-                                                    if (newScale == oldScale) return@awaitPointerEventScope
-
-                                                    val cursor = state.cursorPosition
-
-                                                    val cursorScreen = cursorToScreen(
-                                                        cursor = cursor,
-                                                        canvasWidth = state.canvasWidth,
-                                                        canvasHeight = state.canvasHeight,
-                                                        state.xAxisDirection == XAxisDirection.POSITIVE_LEFT,
-                                                        state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP
-                                                    )
-
-                                                    val logicalAtCursor =
-                                                        (cursorScreen - state.canvasOffset) / oldScale
-
-                                                    state.scale = newScale
-                                                    state.canvasOffset = cursorScreen - logicalAtCursor * state.scale
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                .pointerInput(Unit, canvasPointerHandler)
                                 .onSizeChanged { state.canvasSizePx = it }
                         ) {
                             Box(

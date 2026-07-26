@@ -27,11 +27,164 @@
         canvas {
             display: block;
             outline: none;
+            /* touch-action se nedědí – jinak si prohlížeč u dvouprstého gesta
+               nad plátnem může vzít vlastní zoom stránky. */
+            touch-action: none;
+        }
+
+        /* Načítací vrstva – stejná role jako `.app-loading` v style.css na webu,
+           jen bez proměnných webu, protože tahle stránka nemá jeho styly. */
+        .app-loading {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: #191a1c;
+            transition: opacity .3s ease-out;
+        }
+
+        .app-loading.is-done {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .app-loading-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            width: min(320px, 100%);
+            text-align: center;
+            color: #dcdddf;
+        }
+
+        .app-loading-title { font-size: 1.05rem; font-weight: 650; }
+
+        .app-loading-bar {
+            position: relative;
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: #323236;
+            overflow: hidden;
+        }
+
+        .app-loading-fill {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: #4d7cdb;
+            transition: width .2s ease-out;
+        }
+
+        .app-loading-bar.is-indeterminate .app-loading-fill {
+            width: 40%;
+            transition: none;
+            animation: app-loading-slide 1.2s ease-in-out infinite;
+        }
+
+        .app-loading-note {
+            margin: 0;
+            font-size: .9rem;
+            color: #9a9b9e;
+            font-variant-numeric: tabular-nums;
+        }
+
+        @keyframes app-loading-slide {
+            from { transform: translateX(-105%); }
+            to   { transform: translateX(255%); }
         }
     </style>
 </head>
 <body>
 <div id="webApp"></div>
+<div id="app-loading" class="app-loading" role="status" aria-live="polite">
+    <div class="app-loading-box">
+        <strong class="app-loading-title">Spouštím MongeCAD Web</strong>
+        <div class="app-loading-bar is-indeterminate" id="app-loading-bar">
+            <div class="app-loading-fill" id="app-loading-fill"></div>
+        </div>
+        <p class="app-loading-note" id="app-loading-note">Načítám aplikaci…</p>
+    </div>
+</div>
+<script>
+    // Průběh stahování .wasm; podrobný komentář je u stejné vrstvy v aplikace.html.
+    (() => {
+        const overlay = document.getElementById("app-loading");
+        const bar = document.getElementById("app-loading-bar");
+        const fill = document.getElementById("app-loading-fill");
+        const note = document.getElementById("app-loading-note");
+
+        const megabytes = (bytes) =>
+            (bytes / (1024 * 1024)).toFixed(1).replace(".", ",") + " MB";
+
+        let finished = false;
+        globalThis.__mongecadAppReady = () => {
+            if (finished) return;
+            finished = true;
+            bar.classList.remove("is-indeterminate");
+            fill.style.width = "100%";
+            note.textContent = "Hotovo";
+            overlay.classList.add("is-done");
+            setTimeout(() => overlay.remove(), 400);
+        };
+
+        let received = 0;
+        let expected = 0;
+        let measurable = true;
+
+        const trackWasm = (response) => {
+            const reader = response.body && response.body.getReader
+                ? response.body.getReader()
+                : null;
+            if (!reader) return;
+
+            const declared = Number(response.headers.get("content-length"));
+            if (response.headers.get("content-encoding") || !declared) {
+                measurable = false;
+            } else {
+                expected += declared;
+            }
+
+            const pump = () => reader.read().then(({ done, value }) => {
+                if (done) return;
+                received += value.length;
+                if (!finished) {
+                    if (measurable && expected > 0) {
+                        bar.classList.remove("is-indeterminate");
+                        fill.style.width =
+                            Math.round(Math.min(received / expected, 1) * 100) + "%";
+                        note.textContent =
+                            `Stahuji aplikaci… ${megabytes(received)} z ${megabytes(expected)}`;
+                    } else {
+                        note.textContent = `Stahuji aplikaci… ${megabytes(received)}`;
+                    }
+                }
+                return pump();
+            }).catch(() => {});
+            pump();
+        };
+
+        const originalFetch = globalThis.fetch;
+        if (typeof originalFetch !== "function") return;
+        globalThis.fetch = function (input, init) {
+            const result = originalFetch.call(this, input, init);
+            const url = typeof input === "string"
+                ? input
+                : (input && input.url) || String(input || "");
+            if (finished || !url.includes(".wasm")) return result;
+            return result.then((response) => {
+                try {
+                    if (response.ok) trackWasm(response.clone());
+                } catch (_) { /* měření je jen kosmetika */ }
+                return response;
+            });
+        };
+    })();
+</script>
 <script>
     // Canvas používá pravý/prostřední drag pro pan a vlastní touch gesta.
     const webApp = document.getElementById("webApp");
@@ -39,6 +192,10 @@
         const navigationButton = event.button === 1 || event.button === 2;
         const navigationDrag = (event.buttons & 6) !== 0;
         globalThis.__mongecadCanvasPointerType = event.pointerType || "mouse";
+        // Typ posledního stisku – podrobný komentář je v aplikace.html.
+        if (event.type === "pointerdown") {
+            globalThis.__mongecadCanvasDownPointerType = event.pointerType || "mouse";
+        }
         globalThis.__mongecadCanvasNavigationActive =
             event.type !== "pointerup" &&
             event.type !== "pointercancel" &&

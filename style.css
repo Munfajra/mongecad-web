@@ -427,7 +427,9 @@ body.app-page { overflow: hidden; }
   overscroll-behavior: contain;
 }
 
-#webApp canvas { display: block; outline: none; }
+/* touch-action se nedědí – bez tohohle řádku si prohlížeč u dvouprstého
+   gesta nad plátnem může vzít vlastní zoom stránky místo appky. */
+#webApp canvas { display: block; outline: none; touch-action: none; }
 
 .app-render-recovery {
   position: absolute;
@@ -484,3 +486,95 @@ body.app-page { overflow: hidden; }
 body.app-maximized-host { overflow: hidden; }
 
 .app-fallback { padding: 24px; color: var(--ink-soft); }
+
+/* ---------- Načítání aplikace ---------- */
+/* Wasm má přes 16 MB, takže od kliknutí na záložku po první snímek uběhne
+   na pomalejší síti i několik sekund. Vrstva leží přes celé okno – appka
+   startuje maximalizovaná, takže rám ve stránce nemá co překrývat. */
+.app-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--app-bg);
+  transition: opacity .3s ease-out;
+}
+
+.app-loading.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(320px, 100%);
+  text-align: center;
+}
+
+.app-loading-icon {
+  width: 72px;
+  height: 72px;
+  animation: app-loading-pulse 1.8s ease-in-out infinite;
+}
+
+.app-loading-title {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.app-loading-bar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.app-loading-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .2s ease-out;
+}
+
+/* Dokud není známá rozbalená velikost .wasm (GitHub Pages hlásí jen velikost
+   po kompresi), ukazuje pruh aspoň to, že se pořád něco děje. */
+.app-loading-bar.is-indeterminate .app-loading-fill {
+  width: 40%;
+  transition: none;
+  animation: app-loading-slide 1.2s ease-in-out infinite;
+}
+
+.app-loading-note {
+  font-size: .9rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes app-loading-slide {
+  from { transform: translateX(-105%); }
+  to   { transform: translateX(255%); }
+}
+
+@keyframes app-loading-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .65; transform: scale(.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-icon,
+  .app-loading-bar.is-indeterminate .app-loading-fill {
+    animation: none;
+  }
+  .app-loading-bar.is-indeterminate .app-loading-fill { width: 100%; opacity: .5; }
+}
