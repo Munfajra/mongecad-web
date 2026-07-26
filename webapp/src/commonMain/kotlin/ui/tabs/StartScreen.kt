@@ -27,10 +27,12 @@ import androidx.compose.material.icons.outlined.DesktopWindows
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.ViewInAr
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -163,6 +165,9 @@ fun StartScreen(
 
                 Spacer(Modifier.height(dimens.md))
                 MongeCompatibilityCard(onOpenDrawing, Modifier.fillMaxWidth())
+
+                Spacer(Modifier.height(dimens.md))
+                TouchAndTabletCard(Modifier.fillMaxWidth())
 
                 Spacer(Modifier.height(dimens.lg))
                 ComparisonDisclosure(
@@ -354,6 +359,78 @@ private fun ModeTile(
             tint = accent,
             modifier = Modifier.size(22 * ui.dp)
         )
+    }
+}
+
+@Composable
+private fun TouchAndTabletCard(modifier: Modifier = Modifier) {
+    val colors = LocalMongeColors.current
+    val dimens = LocalMongeDimens.current
+    val ui = SettingsManager.current.UIscale / 75f
+    val shape = RoundedCornerShape(dimens.radiusLg)
+
+    Column(
+        modifier = modifier
+            .clip(shape)
+            .background(colors.base.copy(alpha = if (colors.isDark) 0.095f else 0.045f), shape)
+            .border(1.dp, colors.base.copy(alpha = 0.20f), shape)
+            .padding(dimens.lg),
+        verticalArrangement = Arrangement.spacedBy(dimens.md)
+    ) {
+        Row(verticalAlignment = Alignment.Top) {
+            Box(
+                Modifier
+                    .size(42 * ui.dp)
+                    .background(PLANE_COLOR.copy(alpha = 0.13f), RoundedCornerShape(11 * ui.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.TouchApp,
+                    contentDescription = null,
+                    tint = PLANE_COLOR,
+                    modifier = Modifier.size(23 * ui.dp)
+                )
+            }
+            Spacer(Modifier.width(dimens.md))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = "Dotyk, stylus a tablety",
+                    color = colors.text,
+                    fontSize = SECTION_TITLE * ui.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(4 * ui.dp))
+                Text(
+                    text = "Webová i desktopová verze MongeCADu podporují dotykové ovládání a stylus. " +
+                            "Protože plná aplikace pro Android ani iPadOS není k dispozici, je MongeCAD Web " +
+                            "vhodnou alternativou pro tablety.",
+                    color = colors.text.copy(alpha = 0.63f),
+                    fontSize = BODY_TEXT * ui.sp,
+                    lineHeight = 18 * ui.sp
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MONGE_COLOR.copy(alpha = 0.09f), RoundedCornerShape(dimens.radiusMd))
+                .padding(horizontal = dimens.md, vertical = dimens.sm),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Outlined.Fullscreen,
+                contentDescription = null,
+                tint = MONGE_COLOR,
+                modifier = Modifier.size(19 * ui.dp)
+            )
+            Spacer(Modifier.width(9 * ui.dp))
+            Text(
+                text = "Na počítači doporučujeme pro více prostoru přepnout prohlížeč na celou obrazovku (F11).",
+                color = colors.text.copy(alpha = 0.72f),
+                fontSize = DETAIL_TEXT * ui.sp,
+                lineHeight = 16 * ui.sp
+            )
+        }
     }
 }
 
