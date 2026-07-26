@@ -37,7 +37,7 @@ import ui.mongeui.VerticalResizeHandleOverlay
 import ui.planeUI.toolbar.rightDescriptionBar.RightSidebarPlane
 import ui.theme.LocalMongeDimens
 import ui.handleCanvasNavigationEvent
-import ui.isCanvasClickDown
+import ui.isCanvasClickGesture
 import utils.cursorToScreen
 import utils.getLogicalCursor
 
@@ -230,7 +230,7 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
 
                                             if (
                                                 !navigationHandled &&
-                                                isCanvasClickDown(change, event, state)
+                                                isCanvasClickGesture(change, event, state)
                                             ) {
                                                 handleClick(
                                                     cursor = pScreen, // pořád screen

@@ -37,7 +37,7 @@ import state.snapMonge.computeSnappedPoint
 import ui.WebCursor
 import ui.createAxoCursor
 import ui.handleCanvasNavigationEvent
-import ui.isCanvasClickDown
+import ui.isCanvasClickGesture
 import ui.mongeui.toolbar.LeftPanelToolbar
 import ui.mongeui.toolbar.MongeToolbar
 import ui.mongeui.toolbar.rightDescriptionBar.RightSidebar
@@ -270,7 +270,7 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                                 state.cursorPosition = change.position
                                                 if (
                                                     !navigationHandled &&
-                                                    isCanvasClickDown(change, event, state)
+                                                    isCanvasClickGesture(change, event, state)
                                                 ) {
                                                     handleClick(
                                                         cursor = state.cursorPosition,

@@ -17,15 +17,23 @@ import utils.cursorToScreen
  *  - prostřední drag je webová alternativa pro prohlížeče s vlastními
  *    gesty pravého tlačítka (Vivaldi, některé ovladače touchpadů).
  *
- * Dotyk a stylus:
- *  - prst vždy posouvá canvas a dva prsty současně posouvají + zoomují,
- *  - stylus v NONE režimu posouvá,
- *  - stylus v konstrukčním režimu propadne do click handleru.
+ * Dotyk:
+ *  - posun i zoom obstarávají dva prsty současně,
+ *  - jeden prst kreslí – krátké ťuknutí se chová jako levý klik myší.
+ *
+ * Jeden prst schválně neposouvá plátno: kdyby posouval i kreslil zároveň,
+ * nešlo by obojí rozlišit a konstrukce prstem by byly nepoužitelné.
+ *
+ * Stylus:
+ *  - v NONE režimu posouvá,
+ *  - v konstrukčním režimu propadne do click handleru.
  */
 fun handleCanvasNavigationEvent(
     event: PointerEvent,
     state: MongeState
 ): Boolean {
+    trackTouchTap(event)
+
     val touchChanges = event.changes.filter {
         it.type == PointerType.Touch && it.pressed
     }
@@ -62,12 +70,6 @@ fun handleCanvasNavigationEvent(
     val mousePanContinues =
         state.isPanning && event.type != PointerEventType.Release
 
-    val isTouchPan =
-        (
-            (change.type == PointerType.Touch && !isBrowserStylus) ||
-                isBrowserTouch
-            ) &&
-            change.pressed
     val isStylusPan =
         (
             change.type == PointerType.Stylus ||
@@ -82,7 +84,7 @@ fun handleCanvasNavigationEvent(
             !isBrowserTouch &&
             (navigationMouseButtonDown || mousePanContinues)
 
-    if (isTouchPan || isStylusPan || isMousePan) {
+    if (isStylusPan || isMousePan) {
         val drag = change.positionChange()
         if (drag != Offset.Zero) {
             state.canvasOffset += drag.toCanvasOffsetDelta(state)
@@ -99,13 +101,16 @@ fun handleCanvasNavigationEvent(
 
 /**
  * Levý klik myši se chová jako doposud. Hrot stylusu kliká jen při aktivní
- * konstrukci; v NONE režimu je vyhrazený pro pan.
+ * konstrukci; v NONE režimu je vyhrazený pro pan. Prst kliká ťuknutím, tedy
+ * až při zvednutí – kdyby kliknul hned při dotyku, položil by bod ještě
+ * dřív, než uživatel stihne přiložit druhý prst k posunu plátna.
  */
-fun isCanvasClickDown(
+fun isCanvasClickGesture(
     change: PointerInputChange,
     event: PointerEvent,
     state: MongeState
 ): Boolean {
+    if (TouchTap.completedInThisEvent) return true
     if (!change.changedToDown()) return false
 
     val browserPointerType = browserCanvasPointerType()
@@ -128,6 +133,74 @@ fun isCanvasClickDown(
 internal expect fun browserCanvasPointerType(): String
 
 internal expect fun browserCanvasNavigationActive(): Boolean
+
+/** Posun prstu (px), do kterého se dotyk ještě počítá jako ťuknutí, ne tah. */
+private const val TAP_SLOP_PX = 18f
+
+/**
+ * Rozpracované ťuknutí prstem. Obrazovky se přepínají záložkami, takže na
+ * plátnech nikdy nekreslí dvě gesta naráz a stačí jeden sdílený stav.
+ */
+private object TouchTap {
+    var pointerId: PointerId? = null
+    var startPosition: Offset = Offset.Zero
+    var cancelled: Boolean = false
+
+    /** Platí jen pro právě zpracovávanou událost – čte ho [isCanvasClickGesture]. */
+    var completedInThisEvent: Boolean = false
+
+    fun reset() {
+        pointerId = null
+        startPosition = Offset.Zero
+        cancelled = false
+    }
+}
+
+/**
+ * Sleduje dotyk od přiložení po zvednutí prstu a rozhodne, jestli z něj bude
+ * klik. Ťuknutí ruší druhý prst (to je navigační gesto) i větší posun
+ * (to je tah, ne klik).
+ */
+private fun trackTouchTap(event: PointerEvent) {
+    TouchTap.completedInThisEvent = false
+
+    val touchChanges = event.changes.filter { it.isFingerLike() }
+    if (touchChanges.isEmpty()) {
+        // Myš a stylus mají vlastní cestu ke kliku, rozpracované ťuknutí ruší.
+        TouchTap.reset()
+        return
+    }
+
+    if (touchChanges.count { it.pressed } >= 2) TouchTap.cancelled = true
+
+    if (TouchTap.pointerId == null) {
+        val down = touchChanges.firstOrNull { it.changedToDownIgnoreConsumed() }
+        if (down != null && touchChanges.count { it.pressed } == 1) {
+            TouchTap.pointerId = down.id
+            TouchTap.startPosition = down.position
+            TouchTap.cancelled = false
+        }
+    }
+
+    val tracked = touchChanges.firstOrNull { it.id == TouchTap.pointerId } ?: return
+    if ((tracked.position - TouchTap.startPosition).getDistance() > TAP_SLOP_PX) {
+        TouchTap.cancelled = true
+    }
+
+    if (tracked.changedToUpIgnoreConsumed()) {
+        TouchTap.completedInThisEvent = !TouchTap.cancelled
+        TouchTap.reset()
+    }
+}
+
+/**
+ * Compose Web hlásí prst většinou jako [PointerType.Touch], v některých
+ * prohlížečích ale propadne na myš – původní typ pak zná jen bridge z HTML.
+ */
+private fun PointerInputChange.isFingerLike(): Boolean {
+    if (type == PointerType.Touch) return browserCanvasPointerType() != "pen"
+    return type == PointerType.Mouse && browserCanvasPointerType() == "touch"
+}
 
 private fun beginCanvasPan(state: MongeState) {
     state.isPanning = true

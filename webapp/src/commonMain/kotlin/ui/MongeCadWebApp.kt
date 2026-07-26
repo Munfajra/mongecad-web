@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import model.LocalMongeColors
@@ -33,6 +34,13 @@ fun MongeCadWebApp() {
         SettingsManager.load()
         preloadCoreResources()
         booted = true
+
+        // Načítací vrstva stránky zhasne až nad hotovým UI. První snímek po
+        // `booted` ještě jen rekomponuje, kreslí se ten následující – proto
+        // se čeká na dva.
+        withFrameNanos { }
+        withFrameNanos { }
+        notifyWebAppReady()
     }
 
     MongeTheme(
