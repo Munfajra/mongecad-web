@@ -212,6 +212,19 @@
         };
     })();
 
+    // Přeměření scény. Compose reaguje jen na `resize` okna, ne na změnu
+    // kontejneru ani viditelné části stránky – tu na tabletech mění vysouvací
+    // lišta prohlížeče. Bez tohohle popostrčení zůstane scéna v rozměru,
+    // který platil při startu.
+    const nudgeLayout = () => window.dispatchEvent(new Event("resize"));
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", nudgeLayout);
+        window.visualViewport.addEventListener("scroll", nudgeLayout);
+    }
+    window.addEventListener("orientationchange", () => setTimeout(nudgeLayout, 100));
+    window.addEventListener("pageshow", nudgeLayout);
+
     // Načítací vrstva. Kotlin/Wasm i Skiko si své .wasm stahují samy přes
     // fetch(), takže jediné místo, kde jde průběh odchytit, je fetch samotný.
     // Měří se na klonu odpovědi – originál putuje do
@@ -247,6 +260,16 @@
             showProgress(1, "Hotovo");
             overlay.classList.add("is-done");
             setTimeout(() => overlay.remove(), 400);
+
+            // Compose si rozměr scény bere z okna a měří ho při startu. Tehdy
+            // ale stránka ještě nemusí mít konečnou výšku (lišta prohlížeče,
+            // dopočítané dvh), takže scéna zůstane vyšší než okno a spodek
+            // aplikace – lišta výkresů, ovladač zoomu i dialogy – skončí pod
+            // okrajem obrazovky. Neviditelný dialog přitom pohltí veškerý
+            // vstup, takže to vypadá, že appka přestala reagovat.
+            nudgeLayout();
+            requestAnimationFrame(nudgeLayout);
+            setTimeout(nudgeLayout, 300);
         };
 
         // Volá aplikace po prvním vykresleném snímku (viz ui/AppLoading.kt).

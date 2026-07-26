@@ -124,6 +124,14 @@
         const megabytes = (bytes) =>
             (bytes / (1024 * 1024)).toFixed(1).replace(".", ",") + " MB";
 
+        // Přeměření scény po startu; podrobný komentář je v aplikace.html.
+        const nudgeLayout = () => window.dispatchEvent(new Event("resize"));
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", nudgeLayout);
+            window.visualViewport.addEventListener("scroll", nudgeLayout);
+        }
+        window.addEventListener("orientationchange", () => setTimeout(nudgeLayout, 100));
+
         let finished = false;
         globalThis.__mongecadAppReady = () => {
             if (finished) return;
@@ -133,6 +141,10 @@
             note.textContent = "Hotovo";
             overlay.classList.add("is-done");
             setTimeout(() => overlay.remove(), 400);
+
+            nudgeLayout();
+            requestAnimationFrame(nudgeLayout);
+            setTimeout(nudgeLayout, 300);
         };
 
         let received = 0;
