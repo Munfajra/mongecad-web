@@ -316,7 +316,21 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                             }
 
                                             state.wasSecondaryPressed = isSecondaryPressed
-                                            change.consume()
+
+                                            // Zabírat se smí jen to, co plátno opravdu
+                                            // obsloužilo. Bezpodmínečné consume() bralo
+                                            // i události prvků nad plátnem – táhlo zoomu
+                                            // pak v rovině nešlo chytit prstem ani hrotem,
+                                            // protože jeho gesto se hned zrušilo. MONGE
+                                            // obrazovka to má takhle od začátku.
+                                            val isInteraction =
+                                                event.type == PointerEventType.Scroll ||
+                                                    event.buttons.isPrimaryPressed ||
+                                                    event.buttons.isSecondaryPressed ||
+                                                    change.changedToDown() ||
+                                                    change.changedToUp()
+                                            if (isInteraction) change.consume()
+
                                             // Zoom kolečkem
                                             if (event.type == PointerEventType.Scroll) {
                                                 val scroll = change.scrollDelta

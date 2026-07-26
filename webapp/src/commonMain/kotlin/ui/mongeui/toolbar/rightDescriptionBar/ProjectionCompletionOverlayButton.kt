@@ -111,6 +111,13 @@ fun ProjectionCompletionOverlayButton(state: MongeState) {
             .pointerInput(action.enabled) {
                 if (!action.enabled) return@pointerInput
 
+                // Prst se mezi dotykem a zvednutím vždycky trochu posune a
+                // dotyková obrazovka umí ve stejné události poslat i jiný
+                // ukazatel. Sleduje se proto právě ten, kterým gesto začalo,
+                // a kolem tlačítka je tolerance – jinak ťuknutí prstem
+                // u kraje skončí „mimo“ a konstrukce se nedokončí.
+                val releaseSlop = 12.dp.toPx()
+
                 awaitEachGesture {
                     val down = awaitFirstDown(
                         requireUnconsumed = false,
@@ -123,15 +130,16 @@ fun ProjectionCompletionOverlayButton(state: MongeState) {
                     try {
                         while (true) {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
-                            val change = event.changes.firstOrNull() ?: continue
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
                             val released = change.changedToUpIgnoreConsumed()
                             val position = change.position
 
                             change.consume()
 
                             if (released) {
-                                releasedInside = position.x in 0f..size.width.toFloat() &&
-                                        position.y in 0f..size.height.toFloat()
+                                releasedInside =
+                                    position.x in -releaseSlop..(size.width + releaseSlop) &&
+                                        position.y in -releaseSlop..(size.height + releaseSlop)
                                 break
                             }
                             if (!change.pressed) break

@@ -24,7 +24,8 @@ import utils.cursorToScreen
  *  - jeden prst kreslí – krátké ťuknutí se chová jako levý klik myší.
  *
  * Stylus:
- *  - kreslí vždy, plátno neposouvá vůbec.
+ *  - kreslí vždy a plátno neposouvá vůbec,
+ *  - kliká stejně jako prst, tedy až při zvednutí hrotu.
  *
  * Funkce jsou rozšíření [Density], protože všechny tolerance jsou v dp.
  * Compose Web počítá pozice v zařízených pixelech, takže pevná hodnota v px
@@ -38,7 +39,11 @@ fun Density.handleCanvasNavigationEvent(
     val fingers = event.changes.filter { it.inputKind() == CanvasInputKind.FINGER }
     val pressedFingers = fingers.filter { it.pressed }
 
-    trackTouchTap(fingers, pressedFingers.size)
+    // Prst i hrot kliknou až ťuknutím, tedy při zvednutí. Dokud se kreslilo
+    // hrotem hned při dotyku, závodil canvas s tlačítky v překryvu, která
+    // svoji akci spouštějí až po uvolnění.
+    val directInput = event.changes.filter { it.inputKind() != CanvasInputKind.MOUSE }
+    trackTouchTap(directInput, directInput.count { it.pressed })
 
     if (pressedFingers.size >= 2) {
         applyTwoFingerGesture(state, pressedFingers)
@@ -85,9 +90,12 @@ fun Density.handleCanvasNavigationEvent(
 }
 
 /**
- * Levý klik myši a hrot stylusu kliknou hned při stisku. Prst kliká ťuknutím,
- * tedy až při zvednutí – kdyby kliknul hned při dotyku, položil by bod ještě
- * dřív, než uživatel stihne přiložit druhý prst k posunu plátna.
+ * Levý klik myši platí hned při stisku, jako na desktopu.
+ *
+ * Prst i hrot naopak kliknou ťuknutím, tedy až při zvednutí. U prstu by klik
+ * při dotyku položil bod dřív, než uživatel stihne přiložit druhý prst
+ * k posunu plátna; u hrotu zase závodil s tlačítky v překryvu plátna, která
+ * se rozhodují až podle toho, kde uživatel pustil.
  */
 fun isCanvasClickGesture(
     change: PointerInputChange,
@@ -100,8 +108,8 @@ fun isCanvasClickGesture(
     if (!change.changedToDown()) return false
 
     return when (change.inputKind()) {
-        CanvasInputKind.STYLUS -> true
-        CanvasInputKind.FINGER -> false
+        // Obojí obsluhuje ťuknutí výš, tady se při stisku nekliká.
+        CanvasInputKind.STYLUS, CanvasInputKind.FINGER -> false
         CanvasInputKind.MOUSE -> event.buttons.isPrimaryPressed
     }
 }
@@ -177,8 +185,9 @@ private object TouchGesture {
 }
 
 /**
- * Sleduje dotyk od přiložení po zvednutí prstu a rozhodne, jestli z něj bude
- * klik. Ťuknutí ruší druhý prst (to je navigační gesto) i větší posun.
+ * Sleduje dotyk prstem i hrotem od přiložení po zvednutí a rozhodne, jestli
+ * z něj bude klik. Ťuknutí ruší druhý dotyk (to je navigační gesto nebo dlaň
+ * opřená o displej) i větší posun.
  *
  * Dotyky si hlídá stejně jako myš, tedy jen ty nezpracované: tlačítka
  * v překryvu plátna (domů, zpět, vpřed…) si stisk i zvednutí zkonzumují sama
@@ -190,7 +199,7 @@ private fun Density.trackTouchTap(
 ) {
     TouchGesture.tapCompleted = false
     if (fingers.isEmpty()) {
-        // Myš a stylus mají vlastní cestu ke kliku.
+        // Myš kliká hned při stisku, žádné ťuknutí se nesleduje.
         TouchGesture.tapPointer = null
         TouchGesture.multiTouch = false
         return
