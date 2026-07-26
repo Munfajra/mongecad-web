@@ -102,8 +102,17 @@ fun AppMongeCanvas(state: MongeState) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent()
-                            if (event.type != PointerEventType.Move) continue
-                            state.cursorPosition = event.changes.first().position
+                            val change = event.changes.firstOrNull() ?: continue
+                            if (change.isConsumed) continue
+
+                            // Dřív se hover počítal jen z pohybu, což stačilo myši –
+                            // ta nad plátnem jezdí pořád. Prst a hrot žádný pohyb
+                            // před klepnutím nepošlou, takže konstrukce, které se
+                            // ptají, co je pod kurzorem, dostávaly odpověď z místa
+                            // předchozího doteku. Plátno je proto přepočítá při každé
+                            // události; tahle poběží dřív než obsluha kliku, protože
+                            // v hlavní fázi dostávají potomci události první.
+                            state.cursorPosition = change.position
                             handleHoverDetection(state)
                         }
                     }
