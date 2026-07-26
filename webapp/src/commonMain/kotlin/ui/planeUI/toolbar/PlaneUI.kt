@@ -214,7 +214,7 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                             .background(Color.White)
                             .focusRequester(state.focusRequester)
                             .focusable()
-                            .pointerInput(Unit) {
+                            .pointerInput(state) {
                                 while (true) {
 
                                     awaitPointerEventScope {

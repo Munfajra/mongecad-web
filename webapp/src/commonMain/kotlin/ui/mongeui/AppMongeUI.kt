@@ -411,7 +411,7 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                 .windowCursor(desiredCursor)
                                 .focusRequester(state.focusRequester)
                                 .focusable()
-                                .pointerInput(Unit, canvasPointerHandler)
+                                .pointerInput(state, canvasPointerHandler)
                                 .onSizeChanged { state.canvasSizePx = it }
                         ) {
                             Box(

@@ -372,6 +372,13 @@ class MongeState(
      var deferSelectionUntil: Long = 0L
      var stopSnap by mutableStateOf(0L)
      var isPanning by mutableStateOf(false)
+
+     /**
+      * Režim posunu plátna z levého panelu. Dokud je zapnutý, posouvá jakýkoli
+      * vstup – obě tlačítka myši, hrot i jeden prst – a nic nekreslí. Aktivní
+      * nástroj se nemění, po vypnutí se pokračuje tam, kde konstrukce skončila.
+      */
+     var panMode by mutableStateOf(false)
      var midpointPoint1: Offset? = null
 
      val ellipseArcEnds = mutableStateMapOf<String, Pair<Offset, Offset>>()

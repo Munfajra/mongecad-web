@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import draw.mongescreen.drawAllObjectsNar
 import draw.mongescreen.drawAllObjectsPud
@@ -93,9 +93,20 @@ fun AppMongeCanvas(state: MongeState) {
             modifier = Modifier
                 .focusable()
                 .fillMaxSize()
-                .onPointerEvent(PointerEventType.Move) { event ->
-                    state.cursorPosition = event.changes.first().position
-                    handleHoverDetection(state)
+                // Klíčem je výkres, ne obsluha. `Modifier.onPointerEvent` si klíčuje
+                // podle předané lambdy, a ta tu vzniká znovu při každé rekompozici –
+                // tedy při každém pohybu kurzoru. Vstupní uzel se kvůli tomu pořád
+                // dokola rušil a zakládal a události, které do toho okna spadly,
+                // se ztrácely.
+                .pointerInput(state) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type != PointerEventType.Move) continue
+                            state.cursorPosition = event.changes.first().position
+                            handleHoverDetection(state)
+                        }
+                    }
                 }
         ) {
             state.canvasHeight = size.height
@@ -221,5 +232,10 @@ fun AppMongeCanvas(state: MongeState) {
             Spacer(modifier = Modifier.height(10.dp))
             ProjectionCompletionOverlayButton(state)
         }
+
+        CanvasZoomControl(
+            state = state,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+        )
     }
 }

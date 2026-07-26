@@ -18,6 +18,7 @@ import model.Mongeobjects
 import serialization.SettingsManager
 import state.MongeState
 import ui.components.MongeVerticalToolButton
+import ui.components.PanModeToolButton
 import ui.mongeui.toolbar.DarkImageLightIcon
 import ui.mongeui.toolbar.ToolbarAction
 import ui.mongeui.toolbar.isObjectEnabled
@@ -137,6 +138,7 @@ fun PlaneActionToolbar(state: MongeState) {
     val ui = SettingsManager.current.UIscale/75f
     val dimens = LocalMongeDimens.current
     Column(verticalArrangement = Arrangement.spacedBy(dimens.xs)) {
+        PanModeToolButton(state)
         actions.forEach { action ->
             val selected = state.drawobjects == action.obj
             val enabled  = action.isEnabled(state)

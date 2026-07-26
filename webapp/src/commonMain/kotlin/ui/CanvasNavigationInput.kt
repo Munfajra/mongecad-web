@@ -50,6 +50,15 @@ fun Density.handleCanvasNavigationEvent(
     TouchGesture.endPinch()
 
     val change = event.changes.firstOrNull() ?: return false
+
+    // Režim posunu z levého panelu: táhne cokoliv, čím se dá plátna dotknout.
+    // Události, které si už vzalo tlačítko v překryvu, se přeskakují, aby
+    // plátno neuhnulo při kliknutí na „domů“ nebo „zpět“.
+    if (state.panMode && change.pressed && !change.isConsumed) {
+        dragCanvas(state, change)
+        return true
+    }
+
     when (change.inputKind()) {
         // Hrot ani prst plátno neposouvají – oba propadnou do click handleru.
         CanvasInputKind.STYLUS, CanvasInputKind.FINGER -> {
@@ -65,13 +74,7 @@ fun Density.handleCanvasNavigationEvent(
             val panContinues = state.isPanning && event.type != PointerEventType.Release
 
             if (navigationButtonDown || panContinues) {
-                val drag = change.positionChange()
-                if (drag != Offset.Zero) {
-                    state.canvasOffset += drag.toCanvasOffsetDelta(state)
-                }
-                state.cursorPosition = change.position
-                beginCanvasPan(state)
-                change.consume()
+                dragCanvas(state, change)
                 return true
             }
         }
@@ -91,6 +94,8 @@ fun isCanvasClickGesture(
     event: PointerEvent,
     state: MongeState
 ): Boolean {
+    // V režimu posunu se nekreslí ani při zvednutí prstu.
+    if (state.panMode) return false
     if (TouchGesture.tapCompleted) return true
     if (!change.changedToDown()) return false
 
@@ -174,6 +179,10 @@ private object TouchGesture {
 /**
  * Sleduje dotyk od přiložení po zvednutí prstu a rozhodne, jestli z něj bude
  * klik. Ťuknutí ruší druhý prst (to je navigační gesto) i větší posun.
+ *
+ * Dotyky si hlídá stejně jako myš, tedy jen ty nezpracované: tlačítka
+ * v překryvu plátna (domů, zpět, vpřed…) si stisk i zvednutí zkonzumují sama
+ * a bez téhle podmínky by ťuknutí na ně navíc umístilo bod.
  */
 private fun Density.trackTouchTap(
     fingers: List<PointerInputChange>,
@@ -189,7 +198,7 @@ private fun Density.trackTouchTap(
 
     if (pressedCount >= 2) TouchGesture.multiTouch = true
 
-    val down = fingers.firstOrNull { it.changedToDownIgnoreConsumed() }
+    val down = fingers.firstOrNull { it.changedToDown() }
     if (down != null && pressedCount == 1 && !TouchGesture.multiTouch) {
         TouchGesture.tapPointer = down.id
         TouchGesture.tapStart = down.position
@@ -201,7 +210,8 @@ private fun Density.trackTouchTap(
         if ((tracked.position - TouchGesture.tapStart).getDistance() > TAP_SLOP.toPx()) {
             TouchGesture.tapMoved = true
         }
-        if (tracked.changedToUpIgnoreConsumed()) {
+        if (tracked.isConsumed) TouchGesture.tapMoved = true
+        if (tracked.changedToUp()) {
             TouchGesture.tapCompleted = !TouchGesture.tapMoved && !TouchGesture.multiTouch
             TouchGesture.tapPointer = null
         }
@@ -266,6 +276,47 @@ private fun Density.applyTwoFingerGesture(
     )
 }
 
+/** Meze měřítka plátna. Sdílí je gesta, kolečko myši i ovladač zoomu. */
+const val MIN_CANVAS_SCALE = 1f
+const val MAX_CANVAS_SCALE = 50f
+
+/**
+ * Změní měřítko a nechá na místě střed plátna.
+ *
+ * Gesta i kolečko drží na místě bod pod prstem nebo kurzorem, ovladač zoomu
+ * ale žádný takový bod nemá – kotvou je proto střed nákresny.
+ */
+fun zoomCanvasAroundCenter(state: MongeState, newScale: Float) {
+    val target = newScale.coerceIn(MIN_CANVAS_SCALE, MAX_CANVAS_SCALE)
+    val oldScale = state.scale
+    if (target == oldScale || oldScale <= 0f) return
+
+    val center = Offset(state.canvasWidth / 2f, state.canvasHeight / 2f)
+    val centerScreen = cursorToScreen(
+        cursor = center,
+        canvasWidth = state.canvasWidth,
+        canvasHeight = state.canvasHeight,
+        flipX = state.xAxisDirection == XAxisDirection.POSITIVE_LEFT,
+        flipY = state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP
+    )
+    val logicalAtCenter = (centerScreen - state.canvasOffset) / oldScale
+
+    state.scale = target
+    state.canvasOffset = centerScreen - logicalAtCenter * target
+    state.triggerRedraw++
+}
+
+/** Posun plátna o kus, o který se hnul ukazatel. */
+private fun dragCanvas(state: MongeState, change: PointerInputChange) {
+    val drag = change.positionChange()
+    if (drag != Offset.Zero) {
+        state.canvasOffset += drag.toCanvasOffsetDelta(state)
+    }
+    state.cursorPosition = change.position
+    beginCanvasPan(state)
+    change.consume()
+}
+
 private fun beginCanvasPan(state: MongeState) {
     state.isPanning = true
     state.stopSnap = System.currentTimeMillis() + 200
@@ -293,7 +344,7 @@ private fun transformCanvas(
     zoom: Float
 ) {
     val oldScale = state.scale
-    val newScale = (oldScale * zoom).coerceIn(1f, 50f)
+    val newScale = (oldScale * zoom).coerceIn(MIN_CANVAS_SCALE, MAX_CANVAS_SCALE)
     val flipX = state.xAxisDirection == XAxisDirection.POSITIVE_LEFT
     val flipY = state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP
 
