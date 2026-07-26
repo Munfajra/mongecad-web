@@ -223,7 +223,16 @@ class MongeState(
      var pendingRuledSurfaceDirectorPlaneEquation: PlaneEquation? by mutableStateOf(null)
      val intersectionGroups = mutableStateListOf<IntersectionGroup>()
      var selectedIntersectionGroupId: String? by mutableStateOf(null)
-     var drawobjects by mutableStateOf(Mongeobjects.NONE)
+     private val drawobjectsState = mutableStateOf(Mongeobjects.NONE)
+     var drawobjects: Mongeobjects
+         get() = drawobjectsState.value
+         set(value) {
+             drawobjectsState.value = value
+             if (value != Mongeobjects.NONE) {
+                 panMode = false
+                 isPanning = false
+             }
+         }
      var cylinderPhase by mutableStateOf(CylinderPhase.PICK_CONIC )
     var projekcnityp by mutableStateOf(ProjectionType.SINGLE)
     var mongeMode by mutableStateOf(DrawingModeMonge.PUDORYS)
@@ -376,7 +385,8 @@ class MongeState(
      /**
       * Režim posunu plátna z levého panelu. Dokud je zapnutý, posouvá jakýkoli
       * vstup – obě tlačítka myši, hrot i jeden prst – a nic nekreslí. Aktivní
-      * nástroj se nemění, po vypnutí se pokračuje tam, kde konstrukce skončila.
+      * nástroj se při zapnutí nemění. Při spuštění libovolného konstrukčního
+      * nástroje se režim posunu automaticky vypne v setteru [drawobjects].
       */
      var panMode by mutableStateOf(false)
      var midpointPoint1: Offset? = null
