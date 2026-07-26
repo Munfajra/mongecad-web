@@ -115,6 +115,20 @@ fun isCanvasClickGesture(
 }
 
 /**
+ * Událost, kterou dostane obsluha kliku.
+ *
+ * Konstrukce jsou psané pro klik při stisku a část z nich se sama ptá
+ * `change.changedToDown()` – sdružené úsečky, stopy rovin i doplnění průmětu.
+ * Prst a hrot ale kliknou až při zvednutí, takže by tuhle podmínku nikdy
+ * neprošly a konstrukce zůstala viset v první fázi. Uvolnění jim proto podáme
+ * jako stisk na témže místě; se skutečnou událostí to nehýbe, kopie slouží jen
+ * konstrukci.
+ */
+fun canvasClickChange(change: PointerInputChange): PointerInputChange =
+    if (change.changedToDown()) change
+    else change.copy(currentPressed = true, previousPressed = false)
+
+/**
  * Compose Web 1.9.x převádí prohlížečové události stylusu na myš nebo dotyk. Malý
  * platformní bridge zachová původní `PointerEvent.pointerType` a stav
  * navigačního tlačítka, aby šel stylus od prstu spolehlivě odlišit.

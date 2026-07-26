@@ -37,6 +37,7 @@ import ui.mongeui.VerticalResizeHandleOverlay
 import ui.planeUI.toolbar.rightDescriptionBar.RightSidebarPlane
 import ui.theme.LocalMongeDimens
 import ui.handleCanvasNavigationEvent
+import ui.canvasClickChange
 import ui.isCanvasClickGesture
 import utils.cursorToScreen
 import utils.getLogicalCursor
@@ -242,7 +243,7 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                                     cursor = pScreen, // pořád screen
                                                     snappedPointLogical = snappedPointLogical,
                                                     state = state,
-                                                    change = change
+                                                    change = canvasClickChange(change)
                                                 )
                                             }
                                             val isSecondaryPressed = event.buttons.isSecondaryPressed
