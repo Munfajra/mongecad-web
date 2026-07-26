@@ -410,7 +410,12 @@ body.app-page { overflow: hidden; }
 
 .app-main {
   padding: 0;
+  /* dvh je skutečně viditelná výška okna. Na tabletech a v prohlížečích
+     s vysouvací lištou je 100vh výška okna *bez* té lišty, takže appce
+     zmizel spodek (lišta výkresů, ovladač zoomu) pod okrajem obrazovky.
+     Řádek s vh zůstává jako záloha pro starší prohlížeče. */
   height: calc(100vh - var(--site-header-h, 132px));
+  height: calc(100dvh - var(--site-header-h, 132px));
   min-height: 420px;
 }
 
@@ -465,6 +470,7 @@ body.app-page { overflow: hidden; }
   inset: 0;
   z-index: 9999;
   height: 100vh;
+  height: 100dvh;
   border: 0;
   border-radius: 0;
 }

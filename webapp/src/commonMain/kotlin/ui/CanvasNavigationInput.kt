@@ -148,9 +148,6 @@ private fun PointerInputChange.inputKind(): CanvasInputKind {
     return CanvasInputKind.MOUSE
 }
 
-/** Posun prstu, do kterého se dotyk ještě počítá jako ťuknutí, ne tah. */
-private val TAP_SLOP = 20.dp
-
 /**
  * O kolik se musí prsty rozejít, aby gesto přestalo být čistým posunem.
  *
@@ -166,8 +163,7 @@ private val PINCH_SLOP = 32.dp
  */
 private object TouchGesture {
     var tapPointer: PointerId? = null
-    var tapStart: Offset = Offset.Zero
-    var tapMoved: Boolean = false
+    var tapCancelled: Boolean = false
     var multiTouch: Boolean = false
 
     /** Platí jen pro právě zpracovávanou událost – čte ho [isCanvasClickGesture]. */
@@ -186,12 +182,17 @@ private object TouchGesture {
 
 /**
  * Sleduje dotyk prstem i hrotem od přiložení po zvednutí a rozhodne, jestli
- * z něj bude klik. Ťuknutí ruší druhý dotyk (to je navigační gesto nebo dlaň
- * opřená o displej) i větší posun.
+ * z něj bude klik.
  *
- * Dotyky si hlídá stejně jako myš, tedy jen ty nezpracované: tlačítka
- * v překryvu plátna (domů, zpět, vpřed…) si stisk i zvednutí zkonzumují sama
- * a bez téhle podmínky by ťuknutí na ně navíc umístilo bod.
+ * Na délce tahu nezáleží: prst zakrývá místo, kam míří, takže se s ním po
+ * plátně jezdí a pouští se až tam, kde má bod padnout. Jeden prst ani hrot
+ * nemají žádnou jinou funkci, se kterou by se to mohlo poprat – posun plátna
+ * obstarávají dva prsty nebo tlačítko posunu.
+ *
+ * Klik ruší druhý dotyk (navigační gesto nebo dlaň opřená o displej) a stejně
+ * jako u myši i to, když si událost vezme něco nad plátnem: tlačítka
+ * v překryvu (domů, zpět, dokončení průmětu…) si stisk i zvednutí zabírají
+ * sama a bez téhle podmínky by ťuknutí na ně navíc umístilo bod.
  */
 private fun Density.trackTouchTap(
     fingers: List<PointerInputChange>,
@@ -210,18 +211,14 @@ private fun Density.trackTouchTap(
     val down = fingers.firstOrNull { it.changedToDown() }
     if (down != null && pressedCount == 1 && !TouchGesture.multiTouch) {
         TouchGesture.tapPointer = down.id
-        TouchGesture.tapStart = down.position
-        TouchGesture.tapMoved = false
+        TouchGesture.tapCancelled = false
     }
 
     val tracked = fingers.firstOrNull { it.id == TouchGesture.tapPointer }
     if (tracked != null) {
-        if ((tracked.position - TouchGesture.tapStart).getDistance() > TAP_SLOP.toPx()) {
-            TouchGesture.tapMoved = true
-        }
-        if (tracked.isConsumed) TouchGesture.tapMoved = true
+        if (tracked.isConsumed) TouchGesture.tapCancelled = true
         if (tracked.changedToUp()) {
-            TouchGesture.tapCompleted = !TouchGesture.tapMoved && !TouchGesture.multiTouch
+            TouchGesture.tapCompleted = !TouchGesture.tapCancelled && !TouchGesture.multiTouch
             TouchGesture.tapPointer = null
         }
     }

@@ -225,10 +225,16 @@ fun PlaneUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                                             val navigationHandled =
                                                 handleCanvasNavigationEvent(event, state)
                                             val pScreen = change.position
-                                            state.cursorPosition = pScreen
-
+                                            // Co si vzalo tlačítko v překryvu plátna, do
+                                            // konstrukce nepatří. Ťuknutí na „+" jinak přesune
+                                            // kurzor konstrukce do rohu plátna a rozdělaná
+                                            // konstrukce se dopočítá k nesmyslu. Myš se z toho
+                                            // vylíže prvním pohybem, prst žádný další pohyb
+                                            // nepošle – proto se to dělo jen dotykem.
+                                            if (!change.isConsumed) state.cursorPosition = pScreen
 
                                             if (
+                                                !change.isConsumed &&
                                                 !navigationHandled &&
                                                 isCanvasClickGesture(change, event, state)
                                             ) {
