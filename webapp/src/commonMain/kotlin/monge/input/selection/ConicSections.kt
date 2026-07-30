@@ -8,6 +8,7 @@ import model.classes.ConicSectionNarys
 import model.classes.ConicSectionPudorys
 import model.Mongeobjects
 import monge.input.planeobjects.planelift.decideObjectForLift
+import monge.input.quadrics.conicalsurface.handleConicalToolClick
 import state.MongeState
 
 
@@ -73,7 +74,7 @@ fun toggleSelectionConic3D(parent: ConicSection3D, state: MongeState) {
     val aSibs = state.conicsAxo.filter { it.parentId == pid || it.parent?.id == pid }
     if (state.drawobjects== Mongeobjects.CONE) {
         state.pendingConic3DId=parent.id
-
+        handleConicalToolClick(state)
     }
     // pro robustnost porovnávej podle ID, ne podle instance
     val selP = state.selectedConicsPudorys.map { it.id }.toSet()

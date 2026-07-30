@@ -3,6 +3,9 @@ package ui.mongeui.toolbar.rightDescriptionBar.ObjectList
 import monge.input.selection.isConic3DSelected
 import monge.input.selection.selectConic3DProjections
 import monge.input.intersections.INTERSECTION_RESULT_COLOR
+import monge.input.intersections.handleIntersectionClick
+import monge.input.ruledsurface.handleRuledSurfaceSelection
+import serialization.repairSphereConicParentIds
 import monge.input.intersections.intersectionGroupedIds
 import monge.input.intersections.selectIntersectionGroup
 import model.SOR_BOKORYS_MERIDIAN_ID_PREFIX
@@ -347,7 +350,7 @@ private fun advanceConicArcSelectionIfNeeded(state: MongeState) {
 @Composable
 fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
     {
-
+        repairSphereConicParentIds(state)
         val revolutionAxis3DIds: Set<String> =
             state.solidsOfRevolutionNarys.asSequence()
                 .map { it.axisLine3DId }
@@ -796,8 +799,31 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                         )
                     )
                 }
-                // KUŽELY – web tuhle featuru nemá.
-
+                // --- PŘÍMKOVÉ PLOCHY ---
+                state.ruledSurfaces.forEach { surface ->
+                    add(
+                        UiTreeItem(
+                            key = "ruled:${surface.id}",
+                            sortIndex = sortKeyDesc(surface.creationIndex),
+                            name = when {
+                                listOf(surface.firstBoundaryDirectrix, surface.secondBoundaryDirectrix)
+                                    .any { it.kind == RuledSurfaceDirectrixKind.SPHERE } -> "Kulový konoid ${surface.name}"
+                                surface.directorPlaneId != null -> "Konoid ${surface.name}"
+                                else -> "Přímková plocha ${surface.name}"
+                            },
+                            color = surface.color,
+                            is3D = true,
+                            icon = ObjectListIcon.Curve,
+                            isSelected = { state.selectedRuledSurfaceId == surface.id },
+                            onClick = {
+                                if (clearAllOnClick) clearSelection(state)
+                                state.selectedRuledSurfaceId = surface.id
+                                handleIntersectionClick(state)
+                            },
+                            children = buildRuledSurfaceChildren(state, surface, clearAllOnClick),
+                        )
+                    )
+                }
                 // --- KUŽELY ---
                 state.conicalSurfaces.forEach { cone ->
                     add(
@@ -811,9 +837,9 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                             onClick = {
                                 if (clearAllOnClick) clearSelection(state)
                                 selectConicalSurface(cone, state)
-
+                                handleIntersectionClick(state)
                             },
-                            children = emptyList() // kvadriky web nemá – bez potomků
+                            children = buildConeChildren(state, cone, clearAllOnClick)
                         )
                     )
                 }
@@ -828,10 +854,11 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                             is3D = true,
                             isSelected = { state.selectedSolidOfRevolutionId == solid.id },
                             onClick = {
-
-
+                                if (clearAllOnClick) clearSelection(state)
+                                selectSolidOfRevolutionAll(state, solid, clearAllOnClick)
+                                handleIntersectionClick(state)
                             },
-                            children = emptyList()
+                            children = buildSolidOfRevolutionChildren(state, solid, clearAllOnClick)
                         )
                     )
                 }
@@ -845,10 +872,11 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                             is3D = true,
                             isSelected = { state.selectedSolidOfRevolutionId == solid.id },
                             onClick = {
-
-
+                                if (clearAllOnClick) clearSelection(state)
+                                selectSolidOfRevolutionAll(state, solid, clearAllOnClick)
+                                handleIntersectionClick(state)
                             },
-                            children = emptyList()
+                            children = buildSolidOfRevolutionChildren(state, solid, clearAllOnClick)
                         )
                     )
                 }
@@ -949,7 +977,40 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                 }
 
 
-                // SOLIDY Z 3D ÚSEČEK – web tuhle featuru nemá.
+                // --- SOLIDY Z 3D ÚSEČEK ---
+                state.segmentSolids3D.forEach { solid ->
+                    val label = when (monge.input.segments.segmentSolidSpecialShape(state, solid)) {
+                        monge.input.segments.SegmentSolidShape.KRYCHLE -> "Krychle"
+                        monge.input.segments.SegmentSolidShape.CTYRSTEN -> "Čtyřstěn"
+                        null -> when (solid.type) {
+                            model.classes.SegmentSolidType.HRANOL -> "Hranol"
+                            model.classes.SegmentSolidType.JEHLAN -> "Jehlan"
+                            model.classes.SegmentSolidType.MNOHOSTEN -> "Mnohostěn"
+                        }
+                    }
+                    val name = solid.name.ifBlank { label }
+                    add(
+                        UiTreeItem(
+                            key = "segmentsolid:${solid.id}",
+                            sortIndex = sortKeyDesc(solid.creationIndex),
+                            name = name,
+                            color = solid.color,
+                            is3D = true,
+                            icon = when (solid.type) {
+                                model.classes.SegmentSolidType.HRANOL -> ObjectListIcon.Prism
+                                model.classes.SegmentSolidType.JEHLAN -> ObjectListIcon.Pyramid
+                                model.classes.SegmentSolidType.MNOHOSTEN -> ObjectListIcon.Prism
+                            },
+                            isSelected = { state.selectedSegmentSolids3D.any { it.id == solid.id } },
+                            onClick = {
+                                if (clearAllOnClick) clearSelection(state)
+                                toggleSegmentSolidSelection(state, solid.id, clearOthers = false)
+                                handleIntersectionClick(state)
+                            },
+                            children = buildSegmentSolidChildren(state, solid, clearAllOnClick)
+                        )
+                    )
+                }
 
                 // --- POLYGONY (✅ rozbalitelné: děti = úsečky + body, ze kterých polygon stojí) ---
                 state.polygons3D
@@ -981,7 +1042,25 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                     )
                 }
 
-                // VÁLCE – web tuhle featuru nemá.
+                // --- VÁLCE ---
+                state.cylindricalSurfaces.forEach { cyl ->
+                    add(
+                        UiTreeItem(
+                            key = "cyl:${cyl.id}",
+                            sortIndex = sortKeyDesc(cyl.creationIndex),
+                            name = "Válec ${cyl.name}",
+                            color = cyl.color,
+                            is3D = true,
+                            isSelected = { state.selectedCylinder.contains(cyl) },
+                            onClick = {
+                                if (clearAllOnClick) clearSelection(state)
+                                selectCylindricalSurface(cyl, state)
+                                handleIntersectionClick(state)
+                            },
+                            children = buildCylinderChildren(state, cyl, clearAllOnClick)
+                        )
+                    )
+                }
 
                 // --- ROVINY ---
                 state.planes3D.filterNot(::isAxoPlane).filterNot { it.id in ruledPlaneIds }.forEach { plane ->
@@ -996,7 +1075,7 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                             onClick = {
                                 if (clearAllOnClick) clearSelection(state)
                                 toggleSelectionPlane(plane, state)
-
+                                handleIntersectionClick(state)
                             },
                             children = emptyList()
                         )
@@ -1104,8 +1183,8 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                             onClick = {
                                 if (clearAllOnClick) clearSelection(state)
                                 toggleSelectionSphere3D(sphere, state)
-
-
+                                handleRuledSurfaceSelection(state)
+                                handleIntersectionClick(state)
                             },
                             children = buildSphereChildren(state, sphere, clearAllOnClick)
                         )
@@ -1134,7 +1213,7 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                                     if (clearAllOnClick) clearSelection(state)
                                     selectConic3DProjections(state, conic3D.id, clearAllOnClick = false) // nebo tvoje volba
                                     advanceConicArcSelectionIfNeeded(state)
-
+                                    handleRuledSurfaceSelection(state)
                                 },
                                 children = emptyList()
                             )
@@ -1601,7 +1680,7 @@ fun ObjectList(state: MongeState, clearAllOnClick: Boolean)
                                             toggleSelectionAxoLine(line.source as Line3DProjectionAxo, state)
                                     }
                                 }
-
+                                handleIntersectionClick(state)
                             },
                             children = emptyList()
                         )

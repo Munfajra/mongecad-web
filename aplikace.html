@@ -62,6 +62,26 @@
 </main>
 
 <script>
+    // Na telefonech se ovládací prvky aplikace do šířky okna nevejdou a
+    // překrývají plátno – appka je tam prakticky neovladatelná. Rozvržení
+    // proto vynutíme na tabletovou šířku; prohlížeč stránku oddálí a chová
+    // se pak stejně jako na tabletu, kde je použitelná. Je to totéž, co dělá
+    // přepínač „Zobrazit jako na počítači“, jen si o to řekne stránka sama –
+    // zapnout ten přepínač z kódu nejde.
+    //
+    // Tablety zůstávají beze změny: rozhoduje kratší strana displeje, takže
+    // práh trefí telefony (do ~430 px) a tabletů (od ~768 px) se nedotkne.
+    (() => {
+        const PHONE_MAX = 700;
+        const FORCED_WIDTH = 900;
+        const meta = document.querySelector('meta[name="viewport"]');
+        if (!meta || !window.screen) return;
+        const shorterEdge = Math.min(screen.width, screen.height);
+        if (shorterEdge > 0 && shorterEdge < PHONE_MAX) {
+            meta.setAttribute("content", "width=" + FORCED_WIDTH);
+        }
+    })();
+
     // Výška hlavičky webu se měří za běhu – appka pod ní dostane přesně
     // zbytek okna. Napevno zapsaná hodnota by se rozešla při jiné velikosti
     // písma nebo když se navigace zalomí na dva řádky.
@@ -224,6 +244,7 @@
     }
     window.addEventListener("orientationchange", () => setTimeout(nudgeLayout, 100));
     window.addEventListener("pageshow", nudgeLayout);
+
 
     // Načítací vrstva. Kotlin/Wasm i Skiko si své .wasm stahují samy přes
     // fetch(), takže jediné místo, kde jde průběh odchytit, je fetch samotný.

@@ -3,12 +3,14 @@ package ui
 import model.ConstructionModifier
 import model.DrawingModeMonge
 import model.Mongeobjects
+import monge.input.quadrics.cylindricalsurface.resetCylinderPending
+import monge.input.ruledsurface.clearRuledSurfaceConstruction
 import monge.input.selection.CylinderPhase
 import state.MongeState
 import ui.mongeui.toolbar.updateConstructionInfo
 
 fun resetStavu(state: MongeState, resetConstructionModifier: Boolean = true) {
-    // přímkové plochy web nemá
+    clearRuledSurfaceConstruction(state)
     val shouldResetConstructionModifier =
         resetConstructionModifier &&
                 state.drawobjects != Mongeobjects.TRANSPARALLEL &&
@@ -153,7 +155,7 @@ fun resetStavu(state: MongeState, resetConstructionModifier: Boolean = true) {
     state.platonicFlip = false
     state.cylinderPhase = if (state.cylinderPhase == CylinderPhase.PICK_CONIC_PERP || state.cylinderPhase == CylinderPhase.PICK_CENTER_PERP)
         CylinderPhase.PICK_CONIC_PERP else CylinderPhase.PICK_CONIC
-    // kvadriky web nemá
+    resetCylinderPending(state)
     state.suspendRepeatCons = false
     state.kotoLineRefPudorys = null
     state.kotoLinePickedPoints3D.clear()

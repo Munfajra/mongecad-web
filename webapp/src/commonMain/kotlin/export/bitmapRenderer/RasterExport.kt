@@ -116,3 +116,10 @@ expect fun encodeImage(image: ImageBitmap, format: RasterFormat, jpegQuality: Fl
 
 /** Nabídne hotový soubor ke stažení / uložení. */
 expect fun saveExportedImage(bytes: ByteArray, fileName: String, format: RasterFormat)
+
+/**
+ * Bitmapa ze syrových RGBA8 pixelů (řádky shora dolů). Používá ji export 3D
+ * scény, kde snímek přichází z `glReadPixels`; `ImageBitmap` samo žádné
+ * společné API na zápis pixelů nemá.
+ */
+expect fun rgbaToImageBitmap(rgba: ByteArray, width: Int, height: Int): ImageBitmap?

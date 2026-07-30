@@ -96,10 +96,12 @@ class MongeState(
      var pendingPrismBaseCenter  by mutableStateOf<Offset3D?>(null)
      var pendingPlatonicPolygonId by mutableStateOf<String?>(null)
      var platonicFlip            by mutableStateOf(false)
-     var showReferencePlanesN: Boolean = true
-     var showReferencePlanesP: Boolean = true
-     var showReferencePlanesB: Boolean = true
-     var showTraces: Boolean = true
+     // Compose stav, ne prosté `var`: přepínají se z lišty nad 3D náhledem,
+     // takže se z nich musí umět překreslit jak ta lišta, tak scéna.
+     var showReferencePlanesN by mutableStateOf(true)
+     var showReferencePlanesP by mutableStateOf(true)
+     var showReferencePlanesB by mutableStateOf(true)
+     var showTraces by mutableStateOf(true)
      val colorReferencePlanesN: Color
          get() = SettingsManager.current.ncolor.toColor()
      val colorReferencePlanesB: Color
@@ -302,6 +304,22 @@ class MongeState(
      val snapThreshold: Float
          get() = SettingsManager.current.snapThreshold
     val isOpenGLWindowRunning = AtomicBoolean(false)
+     /**
+      * Je vedle 2D plátna otevřený 3D náhled scény?
+      *
+      * Desktop na tohle má samostatné OpenGL okno; na webu je to půlka
+      * kreslicí plochy s vlastním WebGL plátnem (`ui/gl3d/Gl3DViewport.kt`).
+      */
+     var show3DPanel by mutableStateOf(false)
+
+     /**
+      * Jakou část kreslicí plochy zabírá 3D náhled (0 = nic, 1 = všechno).
+      *
+      * Výška obou polovin je daná oknem, táhlo mezi nimi tedy mění jen poměr
+      * šířek. Drží se poměr, ne šířka v pixelech, aby rozdělení přežilo změnu
+      * velikosti okna.
+      */
+     var gl3dSplitRatio by mutableFloatStateOf(0.5f)
      var kotoLiftLinePickLineId: String? = null
      var selectedLineForPoint: Line3D? = null
     val selectedPointsPudorys = mutableStateListOf<Point3DPudorys>()

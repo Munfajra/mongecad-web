@@ -1,4 +1,5 @@
 package monge.input.planeobjects.conicsections
+import monge.input.segments.refreshSegmentSolidPolygonIds
 
 import geometry.liftNarysToPlane
 import geometry.liftPudorysToPlane
@@ -371,7 +372,7 @@ fun buildRegularPolygonWithProjections(
         style = style, creationIndex = allocIndex(state)
     )
     state.polygons3D.add(polygon)
-
+    refreshSegmentSolidPolygonIds(state)
     return polygon
 }
 
@@ -461,7 +462,7 @@ fun buildRegularPolygonWithAxoProjections(
         creationIndex = allocIndex(state)
     )
     state.polygons3D.add(polygon)
-
+    refreshSegmentSolidPolygonIds(state)
     return polygon
 }
 

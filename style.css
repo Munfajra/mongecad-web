@@ -430,6 +430,10 @@ body.app-page { overflow: hidden; }
   background: var(--app-bg);
   touch-action: none;
   overscroll-behavior: contain;
+  /* Plátno přebírá velikost od kontejneru až při resize okna, takže hned po
+     zmenšení rámu je jeden snímek ještě v původní velikosti. Bez ořezu by
+     v tu chvíli přeteklo přes stránku a vypadalo to, že se nic nestalo. */
+  overflow: hidden;
 }
 
 /* touch-action se nedědí – bez tohohle řádku si prohlížeč u dvouprstého

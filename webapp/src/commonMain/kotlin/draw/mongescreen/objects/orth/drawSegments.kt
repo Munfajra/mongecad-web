@@ -166,7 +166,7 @@ fun DrawScope.drawSegmentHighlightsNarys(
         }
     }
 
-    // Tělesa web nemá, takže se nikdy nezvýrazňuje rozpracovaná podstava.
+    val pendingSolidBasePolygon = monge.input.solids.pendingSolidBasePolygon(state)
 
     for (segment in allSegments) {
         val isPending  = segment.parent?.let { state.pendingSegment3DId == it.id } ?: false
@@ -175,7 +175,7 @@ fun DrawScope.drawSegmentHighlightsNarys(
         val isSelected = state.selectedSegmentsNarys.any { it.id == segment.id }
         val isMeridianSel = state.selectedMeridianNarysIds.contains(segment.id) ||
                 (segment.parent?.id?.let { state.selectedMeridianNarysIds.contains(it) } == true)
-        val isPendingSolidBase = false
+        val isPendingSolidBase = pendingSolidBasePolygon != null && segment.id in pendingSolidBasePolygon.segmentIdsNarys
         val needHighlight = isPending || isPattern || isSelected || (isHovered && state.drawobjects == Mongeobjects.NONE) || isMeridianSel || isPendingSolidBase
         if (!needHighlight) continue
 
@@ -305,7 +305,7 @@ fun DrawScope.drawSegmentHighlightsPudorys(
         }
     }
 
-    // Tělesa web nemá, takže se nikdy nezvýrazňuje rozpracovaná podstava.
+    val pendingSolidBasePolygon = monge.input.solids.pendingSolidBasePolygon(state)
 
     for (segment in allSegments) {
         val isPending  = segment.parent?.let { state.pendingSegment3DId == it.id } ?: false
@@ -314,7 +314,7 @@ fun DrawScope.drawSegmentHighlightsPudorys(
         val isSelected = state.selectedSegmentsPudorys.any { it.id == segment.id }
         val isMeridianSel = state.selectedMeridianPudorysIds.contains(segment.id) ||
                 (segment.parent?.id?.let { state.selectedMeridianPudorysIds.contains(it) } == true)
-        val isPendingSolidBase = false
+        val isPendingSolidBase = pendingSolidBasePolygon != null && segment.id in pendingSolidBasePolygon.segmentIdsPudorys
         val needHighlight = isPending || isPattern || isSelected || (isHovered && state.drawobjects == Mongeobjects.NONE || state.drawobjects == Mongeobjects.SOLID_OF_REVOLUTION) || isMeridianSel || isPendingSolidBase
         if (!needHighlight) continue
 

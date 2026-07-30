@@ -26,9 +26,8 @@ import ui.theme.LocalMongeDimens
 /**
  * Horní lišta. Struktura skupin je stejná jako na desktopu, jen bez těch,
  * které web nemá:
- *   – "Náhled" (OpenGL okno)
- *   – většinu nástrojů z "Celé objekty" (kvadriky, tělesa, šroubovice,
- *     rotační a přímkové plochy)
+ *   – "Náhled" míří na vestavěný WebGL náhled, ne na OpenGL okno
+ *   – z "Celé objekty" chybí šroubovice
  *   – "Převést" (přepnutí do jiného projekčního módu)
  *
  * Souborové a aplikační akce jsou ve společném webovém menu vlevo, aby
@@ -83,6 +82,9 @@ fun MongeToolbar(
             MongeToolbarGroup(title = "Nástroje") {
                 ToolSet(state, buttonsize)
             }
+            MongeToolbarGroup(title = "Náhled") {
+                Preview3DButton(state = state, buttonsize = buttonsize)
+            }
 
             MongeToolbarGroup(title = "Zadání") {
                 BatchInputLauncherToolbar(
@@ -130,9 +132,15 @@ fun MongeToolbar(
             }
 
             MongeToolbarGroup(title = "Celé objekty") {
+                Kvadriky(state, buttonsize)
+                Telesa(state, buttonsize)
+                SolidOfRevolution(state, buttonsize)
+                RuledSurfaceButton(state, buttonsize)
                 LiftToPlaneButton(buttonsize = buttonsize, state = state)
                 IntersectionButton(buttonsize = buttonsize, state = state)
             }
+
+
 
             MongeToolbarGroup(title = "Výkres") {
                 TooltipArea(

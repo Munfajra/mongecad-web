@@ -13,7 +13,7 @@ import monge.input.selection.toggleSelectionCurvePudorys
 import monge.input.selection.toggleSelectionLine3D
 import monge.input.selection.toggleSelectionPlane
 import monge.input.selection.toggleSelectionSphere3D
-
+import monge.input.ruledsurface.handleRuledSurfaceSelection
 import state.MongeState
 
 fun buildRuledSurfaceChildren(
@@ -54,7 +54,7 @@ fun buildRuledSurfaceChildren(
                     onClick = {
                         if (clearAllOnClick) clearSelection(state)
                         toggleSelectionConic3D(conic, state)
-
+                        handleRuledSurfaceSelection(state)
                     },
                 ))
             }
@@ -69,7 +69,7 @@ fun buildRuledSurfaceChildren(
                     onClick = {
                         if (clearAllOnClick) clearSelection(state)
                         toggleSelectionSphere3D(sphere, state)
-
+                        handleRuledSurfaceSelection(state)
                     },
                 ))
             }

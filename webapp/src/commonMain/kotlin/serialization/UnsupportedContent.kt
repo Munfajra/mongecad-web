@@ -6,9 +6,10 @@ import state.MongeState
 /**
  * Kontrola, jestli načtený výkres nesahá mimo to, co webová verze umí.
  *
- * Rýsování v rovině a průniky už web podporuje, proto se do varování
- * nezahrnují. Upozornění zůstává pro axonometrii, kótované promítání,
- * tělesa, rotační a přímkové plochy a další dosud nepřenesené konstrukce.
+ * Objekty samotné už web zvládá v celém rozsahu Mongeova promítání – kužely,
+ * válce, koule, tělesa, rotační i přímkové plochy, průniky a výplně –, takže
+ * se na ně nevaruje. Zůstává jen to, co web opravdu nemá: jiná promítání
+ * (axonometrie, kótované promítání) a konstrukce vzniklé přímo v axonometrii.
  */
 fun unsupportedContentWarnings(state: MongeState): List<String> {
     val warnings = mutableListOf<String>()
@@ -19,19 +20,12 @@ fun unsupportedContentWarnings(state: MongeState): List<String> {
         ProjectionMode.PLANE, ProjectionMode.MONGE -> Unit
     }
 
-    fun note(count: Int, singular: String, plural: String) {
-        if (count > 0) warnings += if (count == 1) singular else "$count $plural"
+    val axoConstructions =
+        state.axoOverlayPoints.size + state.axoOverlayLines.size + state.axoOverlaySegments.size
+    if (axoConstructions > 0) {
+        warnings += if (axoConstructions == 1) "konstrukce v axonometrii"
+        else "$axoConstructions konstrukcí v axonometrii"
     }
-
-    note(state.conicalSurfaces.size, "kužel", "kuželů")
-    note(state.cylindricalSurfaces.size, "válec", "válců")
-    note(state.spheres3D.size, "koule", "koulí")
-    note(state.solidsOfRevolutionNarys.size + state.solidsOfRevolutionPudorys.size,
-        "rotační plocha", "rotačních ploch")
-    note(state.ruledSurfaces.size, "přímková plocha", "přímkových ploch")
-    note(state.segmentSolids3D.size, "těleso z úseček", "těles z úseček")
-    note(state.axoOverlayPoints.size + state.axoOverlayLines.size + state.axoOverlaySegments.size,
-        "konstrukce v axonometrii", "konstrukcí v axonometrii")
 
     return warnings
 }

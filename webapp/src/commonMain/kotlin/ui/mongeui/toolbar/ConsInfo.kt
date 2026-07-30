@@ -1,4 +1,5 @@
 package ui.mongeui.toolbar
+import monge.input.ruledsurface.ruledSurfaceSelectionInfo
 
 import monge.input.axo.lines.linecomplete.ProjectionKind
 import model.ConstructionModifier
@@ -79,7 +80,7 @@ private fun axoPointCompletionInfo(firstKind: ProjectionKind): String =
 fun updateConstructionInfo(state: MongeState) {
     val info = when (state.projectionPhase) {
 
-        "ruled_surface_directrix_select" -> null
+        "ruled_surface_directrix_select" -> ruledSurfaceSelectionInfo(state)
 
         "pudorys_start" -> {
             if (  state.showPlaneNamingDialog) {"Pojmenujte rovinu."}
@@ -87,7 +88,7 @@ fun updateConstructionInfo(state: MongeState) {
             when (state.drawobjects){
                 Mongeobjects.TRANSORTH -> "Vyberte přímku."
                 Mongeobjects.NONE -> ""
-                Mongeobjects.RULED_SURFACE -> null
+                Mongeobjects.RULED_SURFACE -> ruledSurfaceSelectionInfo(state)
                 Mongeobjects.POINTS ->
                     when (state.projectionMode)
                     {

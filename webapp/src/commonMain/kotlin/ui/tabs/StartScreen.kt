@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Fullscreen
+import androidx.compose.material.icons.outlined.FullscreenExit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Save
@@ -54,7 +55,9 @@ import androidx.compose.ui.unit.times
 import model.LocalMongeColors
 import model.ProjectionMode
 import serialization.SettingsManager
+import ui.isAppFullscreen
 import ui.resources.painterResource
+import ui.toggleAppFullscreen
 import ui.theme.LocalMongeDimens
 
 private val MONGE_COLOR = Color(0xFF3E7FE8)
@@ -112,8 +115,9 @@ fun StartScreen(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.spacedBy(dimens.xs, Alignment.End)
                 ) {
+                    StartFullscreenAction()
                     StartSettingsAction(onClick = onSettings)
                 }
 
@@ -251,6 +255,50 @@ private fun StartHero(ui: Float) {
             lineHeight = 31 * ui.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
+ * Přepínač roztažení přes celé okno rovnou z úvodní obrazovky – aby se nemusel
+ * hledat v menu až po otevření výkresu. Stav se čte z dokumentu, ne z lokální
+ * proměnné, aby po neúspěšném přepnutí nelhal (viz ui/Fullscreen.kt).
+ */
+@Composable
+private fun StartFullscreenAction() {
+    val colors = LocalMongeColors.current
+    val dimens = LocalMongeDimens.current
+    val ui = SettingsManager.current.UIscale / 75f
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    val shape = RoundedCornerShape(dimens.radiusMd)
+    var toggles by remember { mutableStateOf(0) }
+    val fullscreen = remember(toggles) { isAppFullscreen() }
+
+    Row(
+        modifier = Modifier
+            .clip(shape)
+            .background(colors.base.copy(alpha = if (hovered) 0.13f else 0.06f))
+            .border(1.dp, colors.base.copy(alpha = 0.18f), shape)
+            .hoverable(interaction)
+            .clickable(interactionSource = interaction, indication = null) {
+                toggleAppFullscreen()
+                toggles++
+            }
+            .padding(horizontal = dimens.sm, vertical = 7 * ui.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            if (fullscreen) Icons.Outlined.FullscreenExit else Icons.Outlined.Fullscreen,
+            contentDescription = null,
+            tint = colors.text.copy(alpha = 0.68f),
+            modifier = Modifier.size(16 * ui.dp)
+        )
+        Spacer(Modifier.width(6 * ui.dp))
+        Text(
+            if (fullscreen) "Zpět do stránky" else "Celá obrazovka",
+            color = colors.text.copy(alpha = 0.70f),
+            fontSize = DETAIL_TEXT * ui.sp
         )
     }
 }
@@ -394,7 +442,7 @@ private fun TouchAndTabletCard(modifier: Modifier = Modifier) {
             Spacer(Modifier.width(dimens.md))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "Dotyk, stylus a tablety",
+                    text = "Dotykové ovládání",
                     color = colors.text,
                     fontSize = SECTION_TITLE * ui.sp,
                     fontWeight = FontWeight.Bold
@@ -425,7 +473,8 @@ private fun TouchAndTabletCard(modifier: Modifier = Modifier) {
             )
             Spacer(Modifier.width(9 * ui.dp))
             Text(
-                text = "Na počítači doporučujeme pro více prostoru přepnout prohlížeč na celou obrazovku (F11).",
+                text = "Pro více prostoru přepněte prohlížeč na celou obrazovku — na počítači " +
+                        "klávesou F11, na tabletu v nabídce prohlížeče v nastavení stránky. ",
                 color = colors.text.copy(alpha = 0.72f),
                 fontSize = DETAIL_TEXT * ui.sp,
                 lineHeight = 16 * ui.sp
@@ -483,7 +532,8 @@ private fun MongeCompatibilityCard(
             )
             Spacer(Modifier.height(4 * ui.dp))
             Text(
-                text = "Výkresy jsou kompatibilní oběma směry. U prvků, které web neumí, upozorní na omezení.",
+                text = "Výkresy jsou kompatibilní oběma směry. Výkresy z jiného typu promítání" +
+                        " web automaticky převede do Mongeova promítání.",
                 color = colors.text.copy(alpha = 0.63f),
                 fontSize = BODY_TEXT * ui.sp,
                 lineHeight = 18 * ui.sp
@@ -594,27 +644,28 @@ private fun ComparisonDisclosure(
 @Composable
 private fun WebCapabilitiesCard(modifier: Modifier = Modifier) {
     InfoCard(
-        title = "Web",
+        title = "Web:",
         icon = Icons.Outlined.CheckCircle,
         accent = PLANE_COLOR,
         modifier = modifier
     ) {
         CapabilityRow(
-            icon = Icons.Outlined.CheckCircle,
-            title = "Základní rýsování",
-            text = "Body, přímky, úsečky, roviny a kuželosečky.",
+            icon = Icons.Outlined.Architecture,
+            title = "Plné rýsování",
+            text = "Body, přímky, roviny a kuželosečky, ale i kužely, válce, kulové plochy, " +
+                    "hranoly, jehlany, rotační a přímkové plochy, průniky a výplně.",
+            accent = PLANE_COLOR
+        )
+        CapabilityRow(
+            icon = Icons.Outlined.ViewInAr,
+            title = "3D náhled",
+            text = "Prostorová kontrola konstrukce, stejně jako na desktopu.",
             accent = PLANE_COLOR
         )
         CapabilityRow(
             icon = Icons.Outlined.FolderOpen,
-            title = "Práce se soubory",
-            text = "Otevření i uložení formátu .monge.",
-            accent = PLANE_COLOR
-        )
-        CapabilityRow(
-            icon = Icons.Outlined.Image,
-            title = "Bitmapový export",
-            text = "Výkres jako PNG nebo JPG.",
+            title = "Soubory a export",
+            text = "Otevření i uložení formátu .monge, výkres jako PNG nebo JPG.",
             accent = PLANE_COLOR
         )
     }
@@ -623,28 +674,27 @@ private fun WebCapabilitiesCard(modifier: Modifier = Modifier) {
 @Composable
 private fun DesktopCapabilitiesCard(modifier: Modifier = Modifier) {
     InfoCard(
-        title = "Desktopová aplikace",
+        title = "Desktop obsahuje navíc:",
         icon = Icons.Outlined.DesktopWindows,
         accent = DESKTOP_COLOR,
         modifier = modifier
     ) {
         CapabilityRow(
-            icon = Icons.Outlined.ViewInAr,
-            title = "3D náhled",
-            text = "Prostorová kontrola konstrukce.",
+            iconPath = "icons/kotomode.svg",
+            title = "Kótované promítání",
+            text = "Promítání na jednu průmětnu.",
+            accent = DESKTOP_COLOR
+        )
+        CapabilityRow(
+            iconPath = "icons/axomode.svg",
+            title = "Axonometrie",
+            text = "Všechny typy axonometrických promítání.",
             accent = DESKTOP_COLOR
         )
         CapabilityRow(
             icon = Icons.Outlined.PictureAsPdf,
             title = "PDF export a tisk",
-            text = "Web exportuje jen bitmapu.",
-            accent = DESKTOP_COLOR
-        )
-        CapabilityRow(
-            icon = Icons.Outlined.Architecture,
-            title = "Složitější objekty",
-            text = "Přímá konstrukce rotačních a přímkových ploch, mnohoúhelníků v rovině, " +
-                    "hranolů, jehlanů, kulových ploch, kuželů a válců.",
+            text = "Webová aplikace exportuje pouze bitmapu",
             accent = DESKTOP_COLOR
         )
     }
@@ -704,16 +754,37 @@ private fun CapabilityRow(
     title: String,
     text: String,
     accent: Color,
+) = CapabilityRowContent(title, text, accent) { size ->
+    Icon(icon, contentDescription = null, tint = accent, modifier = size)
+}
+
+/** Varianta pro režimy promítání – ty mají vlastní ikony ve `composeResources`. */
+@Composable
+private fun CapabilityRow(
+    iconPath: String,
+    title: String,
+    text: String,
+    accent: Color,
+) = CapabilityRowContent(title, text, accent) { size ->
+    Image(
+        painter = painterResource(iconPath),
+        contentDescription = null,
+        colorFilter = ColorFilter.tint(accent),
+        modifier = size
+    )
+}
+
+@Composable
+private fun CapabilityRowContent(
+    title: String,
+    text: String,
+    @Suppress("UNUSED_PARAMETER") accent: Color,
+    icon: @Composable (Modifier) -> Unit,
 ) {
     val colors = LocalMongeColors.current
     val ui = SettingsManager.current.UIscale / 75f
     Row(verticalAlignment = Alignment.Top) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = accent,
-            modifier = Modifier.size(17 * ui.dp)
-        )
+        icon(Modifier.size(17 * ui.dp))
         Spacer(Modifier.width(9 * ui.dp))
         Column(Modifier.weight(1f)) {
             Text(

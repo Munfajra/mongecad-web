@@ -1,4 +1,5 @@
 package serialization
+import monge.input.ruledsurface.captureRuledSurfaceGeometry
 
 import model.classes.isAxisX
 import model.classes.isAxisY
@@ -36,7 +37,7 @@ fun commitSnapshot(state: MongeState) {
 
 fun createSnapshot(state: MongeState): MongeSnapshot {
     repairSphereConicParentIds(state)
-    state.ruledSurfaces.forEach { Unit }
+    state.ruledSurfaces.forEach { captureRuledSurfaceGeometry(state, it) }
     state.conicsPudorys.forEach { c ->
         c.parent?.id?.let { c.parentId = it }
     }
@@ -360,9 +361,9 @@ fun restoreSnapshot(state: MongeState, snapshot: MongeSnapshot) {
     state.curvesPudorys.setAll(snapshot.curvesPudorys)
     state.curvesBokorys.setAll(snapshot.curvesBokorys)
     state.curvesAxo.setAll(snapshot.curvesAxo)
-
-
-
+    monge.input.ruledsurface.repairRuledSurfaceDirectrixOrder(state)
+    monge.input.ruledsurface.ensureRuledSurfaceOutlines(state)
+    monge.input.ruledsurface.ensureRuledSurfaceGeneratorLines(state)
     state.intersectionGroups.setAll(snapshot.intersectionGroups)
     if (state.selectedIntersectionGroupId != null &&
         state.intersectionGroups.none { it.id == state.selectedIntersectionGroupId }

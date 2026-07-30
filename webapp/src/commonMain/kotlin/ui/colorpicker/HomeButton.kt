@@ -1,5 +1,6 @@
 ﻿package ui.colorpicker
 
+import monge.input.intersections.handleIntersectionClick
 import mongecad.web.generated.resources.Res
 import mongecad.web.generated.resources.latinmodern_math
 import org.jetbrains.compose.resources.Font
@@ -135,7 +136,7 @@ fun ReferencePlanesToggleRow(state: MongeState, modifier: Modifier) {
                     }
                     clearSelection(state)
                     toggleSelectionPlane(p1, state)
-
+                    handleIntersectionClick(state)
                 },
                 isSelected = selP1,
                 modifier = Modifier.size(34*uiS.dp),
@@ -161,7 +162,7 @@ fun ReferencePlanesToggleRow(state: MongeState, modifier: Modifier) {
                         }
                         clearSelection(state)
                         toggleSelectionPlane(p2, state)
-
+                        handleIntersectionClick(state)
                     },
                     isSelected = selP2,
                     modifier = Modifier.size(34*uiS.dp),
@@ -184,7 +185,7 @@ fun ReferencePlanesToggleRow(state: MongeState, modifier: Modifier) {
                         state.axoMode = AxoMode.AXO_BOKORYS
                         clearSelection(state)
                         toggleSelectionPlane(p3, state)
-
+                        handleIntersectionClick(state)
                     },
                     isSelected = selP3,
                     modifier = Modifier.size(34*uiS.dp),

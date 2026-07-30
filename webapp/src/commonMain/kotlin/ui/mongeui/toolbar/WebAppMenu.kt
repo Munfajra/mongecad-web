@@ -70,7 +70,11 @@ fun WebAppMenuButton(
     val ui = SettingsManager.current.UIscale / 75f
     val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
-    var fullscreen by remember { mutableStateOf(isAppFullscreen()) }
+    // Stav se schválně nedrží v proměnné, kterou by klik ručně překlápěl – ta
+    // po neúspěšném (nebo prohlížečem zrušeném) přepnutí lže a tlačítko pak
+    // vypadá funkčně, i když se nic nestalo. Čte se z dokumentu pokaždé, když
+    // se menu otevře.
+    val fullscreen = remember(expanded) { isAppFullscreen() }
 
     fun closeAndRun(action: () -> Unit) {
         expanded = false
@@ -170,12 +174,7 @@ fun WebAppMenuButton(
                         },
                         title = if (fullscreen) "Zpět do stránky" else "Celá obrazovka",
                         subtitle = "Přepnout zobrazení aplikace",
-                        onClick = {
-                            closeAndRun {
-                                toggleAppFullscreen()
-                                fullscreen = !fullscreen
-                            }
-                        }
+                        onClick = { closeAndRun { toggleAppFullscreen() } }
                     )
                     val dark = SettingsManager.current.isDarkMode
                     WebMenuItem(

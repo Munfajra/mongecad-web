@@ -1,4 +1,5 @@
 package serialization
+import monge.input.quadrics.conicalsurface.rebuildConicalSilhouette2D
 
 import utils.replaceAll
 import androidx.compose.ui.geometry.Offset
@@ -544,9 +545,9 @@ fun SerializedMongeState.toMongeState(): MongeState {
     state.conicalSurfaces.addAll(conicalSurfaces)
     state.cylindricalSurfaces.addAll(cylindricalSurfaces)
     state.ruledSurfaces.addAll(ruledSurfaces)
-
-
-
+    monge.input.ruledsurface.repairRuledSurfaceDirectrixOrder(state)
+    monge.input.ruledsurface.ensureRuledSurfaceOutlines(state)
+    monge.input.ruledsurface.ensureRuledSurfaceGeneratorLines(state)
     state.activeAxoModel =this.axoModel.toRuntime()
     state.labelOffsetsNarys.putAll(this.labelOffsetsNarys.mapValues { it.value.toOffset() })
     state.labelOffsetsPudorys.putAll(this.labelOffsetsPudorys.mapValues { it.value.toOffset() })
@@ -770,7 +771,7 @@ private fun repairConicalSurfaceSilhouettes(state: MongeState) {
 
         if (!hasLoadedP && !hasLoadedN && !hasLoadedB && !hasLoadedA) {
             val apex = state.sharedPoints3D.firstOrNull { it.id == surface.apexId } ?: return@forEach
-
+            rebuildConicalSilhouette2D(state, surface, apex)
         }
     }
 }

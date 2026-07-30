@@ -1,4 +1,5 @@
 package serialization
+import monge.input.ruledsurface.captureRuledSurfaceGeometry
 
 
 import model.classes.isAxis
@@ -22,7 +23,7 @@ import state.MongeState
 
 
 fun MongeState.toSerialized(): SerializedMongeState {
-    ruledSurfaces.forEach { Unit }
+    ruledSurfaces.forEach { captureRuledSurfaceGeometry(this, it) }
 
     return SerializedMongeState(
         points3D = sharedPoints3D.map { it.toSerializable() },

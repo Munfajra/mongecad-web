@@ -1,4 +1,11 @@
 package export.bitmapRenderer
+import draw.mongescreen.fills.FillView
+import draw.mongescreen.fills.computeOcclusionClipsBlocking
+import draw.mongescreen.fills.drawQuadricFills
+import draw.mongescreen.fills.drawSegmentSolidsFillNarys
+import draw.mongescreen.fills.drawSegmentSolidsFillPudorys
+import draw.mongescreen.fills.quadricFillsNarys
+import draw.mongescreen.fills.quadricFillsPudorys
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -73,19 +80,17 @@ fun DrawScope.drawMongeSceneExport(
                     drawPointsPudorys(state, pxPerPtWorkspace, pointMarkerPxPerPt)
                     drawCurvePudorys(state)
                     drawCurveNarys(state)
+                    val pudView = FillView.pudorys(state)
+                    val pudQuadricFills = quadricFillsPudorys(state)
+                    val pudOccluded = computeOcclusionClipsBlocking(state, pudView, pudQuadricFills)
+                    drawSegmentSolidsFillPudorys(state, pudOccluded)
+                    drawQuadricFills(pudQuadricFills, pudView.screenMatrix, pudOccluded)
 
-
-
-
-
-
-
-
-
-
-
-
-
+                    val narView = FillView.narys(state)
+                    val narQuadricFills = quadricFillsNarys(state)
+                    val narOccluded = computeOcclusionClipsBlocking(state, narView, narQuadricFills)
+                    drawSegmentSolidsFillNarys(state, narOccluded)
+                    drawQuadricFills(narQuadricFills, narView.screenMatrix, narOccluded)
                     drawSegmentsPudorys(state, showHelpLine = drawHelpers, pxPerPtWorkspace)
                     drawSegmentsNarys(state, showHelpLine = drawHelpers, pxPerPtWorkspace)
 
@@ -105,11 +110,11 @@ fun DrawScope.drawMongeSceneExport(
                     drawCurvePudorys(state)
                     drawLinesPudorys(state, showHelpLine = drawHelpers, pxPerPtWorkspace)
                     if (state.projectionMode == ProjectionMode.KOTO) {
-
-
-
-
-
+                        val pudView = FillView.pudorys(state)
+                        val pudQuadricFills = quadricFillsPudorys(state)
+                        val pudOccluded = computeOcclusionClipsBlocking(state, pudView, pudQuadricFills)
+                        drawSegmentSolidsFillPudorys(state, pudOccluded)
+                        drawQuadricFills(pudQuadricFills, pudView.screenMatrix, pudOccluded)
                     }
                     drawSegmentsPudorys(state, showHelpLine = drawHelpers, pxPerPtWorkspace)
                     drawCirclesPudorys(state, showHelpCircle = drawHelpers, pxPerPtWorkspace)
@@ -146,5 +151,4 @@ fun DrawScope.drawMongeSceneExport(
     }
 }
 
-// Vyříznuto: drawAxoSceneExport a výplně kvadrik – web axonometrii
-// ani kvadriky nekreslí.
+// Vyříznuto: drawAxoSceneExport – web axonometrii nekreslí.

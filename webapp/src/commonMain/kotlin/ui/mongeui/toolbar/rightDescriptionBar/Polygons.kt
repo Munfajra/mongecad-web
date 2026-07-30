@@ -1,6 +1,6 @@
 package ui.mongeui.toolbar.rightDescriptionBar
-
 import utils.replaceAll
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -19,6 +19,7 @@ import model.classes.Segment2DNarys
 import model.classes.Segment2DPudorys
 import model.classes.Segment3D
 import serialization.SettingsManager
+import monge.input.segments.removeSegmentSolidsContaining
 import state.MongeState
 import ui.colorpicker.ColorPickerDropdown
 import ui.components.MongeDivider
@@ -576,7 +577,7 @@ fun deletePolygon(state: MongeState, polyId: String) {
         state.pointsAxo.removeAll       { it.parent?.id in pt3Ids || it.parentSegment?.let { s -> (s.parent?.id ?: s.parentId) in seg3Ids } == true }
 
         // 3) odstraň 3D objekty
-
+        removeSegmentSolidsContaining(state, seg3Ids)
         state.segments3D.removeAll      { it.id in seg3Ids }
         state.sharedPoints3D.removeAll  { it.id in pt3Ids }
 

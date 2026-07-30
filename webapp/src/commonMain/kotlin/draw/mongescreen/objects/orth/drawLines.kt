@@ -9,12 +9,14 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import draw.mongescreen.DashPatternPx
 import draw.mongescreen.lineStyleDashPatternPx
+import geometry.positiveMod
 import draw.mongescreen.objects.HOVER_HALO_EXTRA_PX
 import draw.mongescreen.objects.PENDING_HALO_EXTRA_PX
 import draw.mongescreen.objects.SELECTION_HALO_EXTRA_PX
 import draw.mongescreen.objects.strokePx
 import model.*
 import model.classes.*
+import monge.input.ruledsurface.isPendingRuledSurfaceDirectrix
 import state.MongeState
 import utils.dotProduct
 import kotlin.math.abs
@@ -241,7 +243,7 @@ fun DrawScope.drawLinesNarys(state: MongeState,showHelpLine:Boolean,pxPerPt: Flo
                         isPlaneTraceConstructionInput(state, line.parentId ?: line.parent?.id)
             is Line3DProjectionNarys ->
                 isHyperbolaAsymptoteNarys(state, line) ||
-                        
+                        isPendingRuledSurfaceDirectrix(state, line.parent?.id ?: line.parentId) ||
                         state.selectedLineForParallelNarys === line ||
                         state.selectedLineForParallelNarysSecond === line ||
                         if(line.parent != null) { state.pendingLine3DId == line.parent?.id
@@ -350,7 +352,7 @@ fun DrawScope.drawLinesPudorys(state: MongeState,showHelpLine: Boolean, pxPerPt:
 
             is Line3DProjectionPudorys ->
                 isHyperbolaAsymptotePudorys(state, line) ||
-                        
+                        isPendingRuledSurfaceDirectrix(state, line.parent?.id ?: line.parentId) ||
                         state.selectedLineForParallelPudorys === line ||
                         state.selectedLineForParallelPudorysSecond === line ||
                         if (line.parent != null) {
@@ -430,12 +432,4 @@ fun DrawScope.drawLinesPudorys(state: MongeState,showHelpLine: Boolean, pxPerPt:
             )
         )
     }
-}
-
-// Desktop tuhle funkci bere z draw.mongescreen.objects.axo.drawLines; axo
-// kreslení web nemá, tak je tady u jediného místa, které ji používá.
-fun positiveMod(value: Float, mod: Float): Float {
-    if (mod <= 0f) return 0f
-    val r = value % mod
-    return if (r < 0f) r + mod else r
 }

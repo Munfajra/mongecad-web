@@ -47,7 +47,7 @@ fun SelectionInfo(state: MongeState) {
                 item {
                     if (state.projectionPhase in listOf("pudorys_start","narys_start","") && state.drawobjects == Mongeobjects.NONE) {
                         if (state.selectedIntersectionGroupId != null) {
-
+                            intersectionGroupEdit(state)
                         } else if (!state.selectedCone.isNotEmpty()
                             && !state.selectedCylinder.isNotEmpty()
                             && !state.selectedPolygons.isNotEmpty()
@@ -72,8 +72,13 @@ fun SelectionInfo(state: MongeState) {
                             }
                         }
 
-
-
+                        sorEditPud(state)
+                        sorEdit(state)
+                        ruledSurfaceEdit(state)
+                        sphereEdit(state)
+                        coneEdit(state)
+                        cylinderEdit(state)
+                        segmentSolidEdit(state)
 
 
 

@@ -1,4 +1,5 @@
 package ui.mongeui.toolbar.rightDescriptionBar
+import monge.input.segments.removeSegmentSolidsContaining
 
 import utils.replaceAll
 import ui.components.MiniInputField
@@ -734,7 +735,7 @@ private fun KotaHoverField(
 fun deleteSegment3D (state: MongeState, seg3D: Segment3D){
 
     val parent = seg3D
-
+    removeSegmentSolidsContaining(state, setOf(parent.id))
 
     // 1) obě projekce téhle 3D úsečky
     val pudorysy = state.segmentsPudorys.filter { it.parent === parent }
@@ -838,7 +839,7 @@ fun deleteSegment2D(state: MongeState,selectedSegmentRaw: Segment2DProjection){
             // pokud měl parenta → zruš parenta a "odpoj" druhý průmět
             seg.parent?.let { parent ->
                 // smazat 3D úsečku
-
+                removeSegmentSolidsContaining(state, setOf(parent.id))
                 state.segments3D.removeAll { it.id == parent.id }
 
                 // najdi druhý průmět v NÁRYSU a odpoj ho
@@ -883,7 +884,7 @@ fun deleteSegment2D(state: MongeState,selectedSegmentRaw: Segment2DProjection){
             state.selectedPointsNarys.removeAll { it.isSegmentEndpoint && it.parentSegment?.id == seg.id }
 
             seg.parent?.let { parent ->
-
+                removeSegmentSolidsContaining(state, setOf(parent.id))
                 state.segments3D.removeAll { it.id == parent.id }
 
                 // najdi druhý průmět v PŮDORYSU a odpoj ho
@@ -927,7 +928,7 @@ fun deleteSegment2D(state: MongeState,selectedSegmentRaw: Segment2DProjection){
             state.selectedPointsBokorys.removeAll { it.isSegmentEndpoint && it.parentSegment?.id == seg.id }
 
             seg.parent?.let { parent ->
-
+                removeSegmentSolidsContaining(state, setOf(parent.id))
                 state.segments3D.removeAll { it.id == parent.id }
 
                 // najdi druhý průmět v PŮDORYSU a odpoj ho
@@ -971,7 +972,7 @@ fun deleteSegment2D(state: MongeState,selectedSegmentRaw: Segment2DProjection){
             state.selectedPointsAxo.removeAll { it.isSegmentEndpoint && it.parentSegment?.id == seg.id }
 
             seg.parent?.let { parent ->
-
+                removeSegmentSolidsContaining(state, setOf(parent.id))
                 state.segments3D.removeAll { it.id == parent.id }
 
                 // najdi druhý průmět v PŮDORYSU a odpoj ho

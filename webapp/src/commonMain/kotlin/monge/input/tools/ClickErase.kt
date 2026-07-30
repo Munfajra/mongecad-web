@@ -14,6 +14,7 @@ import model.classes.PlaneTraceNarys
 import model.classes.PlaneTracePudorys
 import model.classes.Segment2DNarys
 import model.classes.Segment2DPudorys
+import monge.input.segments.removeSegmentSolidsContaining
 import monge.input.segments.removePlanePolygonsContainingSegments
 import monge.input.segments.removePlanePolygonsContainingAidPoints
 import state.MongeState
@@ -170,7 +171,7 @@ fun eraseObjectAtPudorys(
 
                 // --- 4) pokud měla úsečka parenta: zruš 3D úsečku a odpoj druhý průmět v NÁRYSU ---
                 seg.parent?.let { parent ->
-
+                    removeSegmentSolidsContaining(state, setOf(parent.id))
                     state.segments3D.removeAll { it.id == parent.id }
 
                     state.segmentsNarys.find { it.parent === parent }?.let { other ->
@@ -489,7 +490,7 @@ fun eraseObjectAtNarys(
                 // --- 3) smazat 3D parenta úsečky a „odpojit“ druhý průmět (PŮDORYS) ---
                 seg.parent?.let { parent ->
                     // zruš 3D úsečku
-
+                    removeSegmentSolidsContaining(state, setOf(parent.id))
                     state.segments3D.removeAll { it.id == parent.id }
 
                     // najdi druhý průmět a odpoj ho (ponecháme ho jako samostatný 2D segment)

@@ -2,9 +2,13 @@ package export.bitmapRenderer
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import kotlinx.browser.document
+import org.jetbrains.skia.ColorAlphaType
+import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
+import org.jetbrains.skia.ImageInfo
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.set
 import org.w3c.dom.HTMLAnchorElement
@@ -56,4 +60,22 @@ private fun ByteArray.toInt8Array(): Int8Array {
     val out = Int8Array(size)
     for (i in indices) out.set(i, this[i])
     return out
+}
+
+/**
+ * Bitmapa ze syrových pixelů přes Skia. `Image.makeRaster` bere data tak, jak
+ * jsou – `glReadPixels` je dodává jako neprednásobené RGBA, proto
+ * `UNPREMUL`; s `PREMUL` by poloprůhledné pixely vyšly moc světlé.
+ */
+actual fun rgbaToImageBitmap(rgba: ByteArray, width: Int, height: Int): ImageBitmap? {
+    if (width <= 0 || height <= 0 || rgba.size < width * height * 4) return null
+    val info = ImageInfo(
+        width = width,
+        height = height,
+        colorType = ColorType.RGBA_8888,
+        alphaType = ColorAlphaType.UNPREMUL,
+    )
+    return runCatching {
+        Image.makeRaster(info, rgba, width * 4).toComposeImageBitmap()
+    }.getOrNull()
 }

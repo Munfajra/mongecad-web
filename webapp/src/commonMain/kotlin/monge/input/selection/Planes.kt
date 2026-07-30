@@ -8,6 +8,9 @@ import model.ProjectionType
 import model.classes.Plane3D
 import model.classes.PlaneEquation
 import monge.input.planeobjects.planelift.finalizePendingConicLiftWithPlane
+import monge.input.quadrics.cylindricalsurface.handleCylindricalToolClick
+import monge.input.intersections.handleIntersectionClick
+import monge.input.ruledsurface.handleRuledSurfaceSelection
 import state.MongeState
 import ui.mongeui.toolbar.setProjectionPhase
 import kotlin.math.abs
@@ -125,6 +128,12 @@ fun toggleSelectionPlane(plane: Plane3D, state: MongeState) {
             return
         }
     }
-
-
+    handleRuledSurfaceSelection(state)
+    handleCylindricalToolClick(state, axoConstruction = state.projectionMode == ProjectionMode.AXO)
+    // Průnik se posouvá stejně jako konstrukce výše. Bez toho by rovina označená
+    // odjinud než z plátna (ObjectList, řídicí rovina pod přímkovou plochou) do
+    // průniku nespadla. Opakované volání je neškodné – `intersectionPicks` se
+    // deduplikuje podle id a po odpálení výpočtu drží `intersectionComputing`
+    // další vstupy stranou.
+    handleIntersectionClick(state)
 }

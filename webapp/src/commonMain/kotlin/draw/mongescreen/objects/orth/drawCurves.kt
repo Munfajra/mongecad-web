@@ -1,5 +1,10 @@
 package draw.mongescreen.objects.orth
 
+import draw.mongescreen.objects.drawCurvePath
+import draw.mongescreen.objects.isCurveHoveredNarys
+import draw.mongescreen.objects.isCurveHoveredPudorys
+import draw.mongescreen.objects.isCurveSelectedNarys
+import draw.mongescreen.objects.isCurveSelectedPudorys
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -8,11 +13,12 @@ import draw.mongescreen.objects.HOVER_HALO_EXTRA_PX
 import draw.mongescreen.objects.PENDING_HALO_EXTRA_PX
 import draw.mongescreen.objects.SELECTION_HALO_EXTRA_PX
 import draw.mongescreen.objects.axo.*
-import model.*
-import model.classes.CurvePudRef
 import geometry.drawSmoothCurve
 import geometry.toLogical
+import model.*
+import model.classes.CurvePudRef
 import geometry.logicalToScreen
+import monge.input.ruledsurface.isPendingRuledSurfaceDirectrix
 import state.MongeState
 import utils.getLogicalCursor
 
@@ -33,7 +39,7 @@ fun DrawScope.drawCurveNarys(state: MongeState) {
 
         if (pts.size < 2) return@forEach
 
-        val pending = false
+        val pending = isPendingRuledSurfaceDirectrix(state, curve.parentId ?: curve.parent?.id)
         val selected = isCurveSelectedNarys(state, curve)
         val w = curve.effectiveStrokeWidth
         val bakedPolyline = curve.polylineLocal != null
@@ -76,7 +82,7 @@ fun DrawScope.drawCurvePudorys(state: MongeState) {
 
         if (pts.size < 2) return@forEach
 
-        val pending = false
+        val pending = isPendingRuledSurfaceDirectrix(state, curve.parentId ?: curve.parent?.id)
         val selected = isCurveSelectedPudorys(state, curve)
         val w = curve.effectiveStrokeWidth
         val bakedPolyline = curve.polylineLocal != null

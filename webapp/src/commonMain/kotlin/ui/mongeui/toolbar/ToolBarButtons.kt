@@ -57,6 +57,9 @@ import ui.components.MongeRibbonButton
 import ui.theme.LocalMongeDimens
 import ui.resetStavu
 import monge.input.selection.CylinderPhase
+import monge.input.meridian.startSolidOfRevolutionTool
+import monge.input.meridian.startSolidOfRevolutionToolPudorys
+import monge.input.ruledsurface.startRuledSurfaceTool
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -1778,4 +1781,317 @@ fun Pojmenovat(state: MongeState, buttonsize: Dp) {
         painterPath = "icons/pojmenovat.svg",
         buttonSize = buttonsize
     )
+}
+
+@Composable
+private fun RichDropdownPopupQuadrics(
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val ui = SettingsManager.current.UIscale/75f
+    val colors = LocalMongeColors.current
+    Popup(
+        alignment = Alignment.TopStart,
+        offset = IntOffset(0, 105),
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = true)
+    ) {
+        val scroll = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .width(380*ui.dp)
+                .shadow(12*ui.dp, RoundedCornerShape(8.dp))
+                .background(colors.background, RoundedCornerShape(8.dp))
+                .border(1*ui.dp, colors.base.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                .padding(10*ui.dp)
+                .heightIn(max = 460*ui.dp)
+                .verticalScroll(scroll)
+        ) {
+            content()
+        }
+    }
+}
+
+/**
+ * Nabídka kvadrik. Oproti desktopu bez axonometrických větví – web má jen
+ * Mongeovo promítání a rýsování v rovině.
+ */
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun Kvadriky(state: MongeState, buttonsize: Dp) {
+    val colors = LocalMongeColors.current
+    var mainPopupVisible by remember { mutableStateOf(false) }
+    val ui = SettingsManager.current.UIscale/75f
+    fun runAndClose(action: () -> Unit) {
+        action()
+        mainPopupVisible = false
+    }
+
+    Box {
+        TooltipArea(
+            tooltip = {
+                Box(Modifier.background(Color.DarkGray).padding(6.dp)) {
+                    Text("Kvadriky", color = Color.White)
+                }
+            },
+            delayMillis = 500,
+        ) {
+            SkikoButton(
+                onClick = { mainPopupVisible = !mainPopupVisible },
+                isSelected = mainPopupVisible,
+                width = buttonsize,
+                height = buttonsize,
+                enabled = state.projectionPhase in listOf("pudorys_start","narys_start"),
+            ) {
+                Icon(
+                    painter = painterResource("icons/quadrics.svg"),
+                    contentDescription = "Kvadriky"
+                )
+            }
+        }
+
+        if (mainPopupVisible) {
+            RichDropdownPopupQuadrics(
+                onDismiss = { mainPopupVisible = false }
+            ) {
+                SectionHeader("Kvadriky")
+                Divider(color = colors.base.copy(alpha = 0.25f))
+                // ───────── Singulární ─────────
+                SectionHeader("Singulární")
+
+                ConicMenuItem(
+                    title = "Kužel",
+                    subtitle = "Podstavná elipsa + vrchol",
+                    painter = "icons/cone.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.CONE
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+
+                ConicMenuItem(
+                    title = "Válec",
+                    subtitle = "Podstavná elipsa, směr válce, rovina druhé podstavy",
+                    painter = "icons/cylinder.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.CYLINDER
+                            state.cylinderPhase = CylinderPhase.PICK_CONIC
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+
+                ConicMenuItem(
+                    title = "Kolmý válec",
+                    subtitle = "Podstavná elipsa + střed horní podstavy",
+                    painter = "icons/cylinder.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.CYLINDER
+                            state.cylinderPhase = CylinderPhase.PICK_CONIC_PERP
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+
+                Spacer(Modifier.height(6.dp))
+                Divider(color = colors.base.copy(alpha = 0.25f))
+                Spacer(Modifier.height(6.dp))
+
+                // ───────── Regulární ─────────
+                SectionHeader("Regulární")
+
+                ConicMenuItem(
+                    title = "Kulová plocha",
+                    subtitle = "Určená pomocí středu a poloměru",
+                    painter = "icons/sphere.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.SPHERE
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Nabídka těles. Oproti desktopu bez axonometrických větví.
+ */
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun Telesa(state: MongeState, buttonsize: Dp) {
+    val colors = LocalMongeColors.current
+    var mainPopupVisible by remember { mutableStateOf(false) }
+    val ui = SettingsManager.current.UIscale / 75f
+    fun runAndClose(action: () -> Unit) {
+        action()
+        mainPopupVisible = false
+    }
+
+    Box {
+        TooltipArea(
+            tooltip = {
+                Box(Modifier.background(Color.DarkGray).padding(6.dp)) {
+                    Text("Tělesa", color = Color.White)
+                }
+            },
+            delayMillis = 500,
+        ) {
+            SkikoButton(
+                onClick = { mainPopupVisible = !mainPopupVisible },
+                isSelected = mainPopupVisible,
+                width = buttonsize,
+                height = buttonsize,
+                enabled = state.projectionPhase in listOf("pudorys_start", "narys_start"),
+            ) {
+                Icon(
+                    painter = painterResource("icons/hexagonal-prism-plus.svg"),
+                    contentDescription = "Tělesa"
+                )
+            }
+        }
+
+        if (mainPopupVisible) {
+            RichDropdownPopupQuadrics(
+                onDismiss = { mainPopupVisible = false }
+            ) {
+                SectionHeader("Tělesa")
+                Divider(color = colors.base.copy(alpha = 0.25f))
+
+                ConicMenuItem(
+                    title = "Jehlan",
+                    subtitle = "n-úhelníková podstava + vrchol",
+                    painter = "icons/brand-prisma.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.PYRAMID
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+
+                ConicMenuItem(
+                    title = "Kolmý hranol",
+                    subtitle = "n-úhelníková podstava + výška",
+                    painter = "icons/rectangular-prism.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.PRISM
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                            state.pendingPrismPolygonId = null
+                            state.pendingPrismNormal = null
+                            state.pendingPrismBaseCenter = null
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+
+                ConicMenuItem(
+                    title = "Pravidelný mnohostěn",
+                    subtitle = "Krychle nebo čtyřstěn",
+                    painter = "icons/cube.svg",
+                    onClick = {
+                        runAndClose {
+                            state.drawobjects = Mongeobjects.PLATONIC_SOLID
+                            state.projekcnityp = ProjectionType.ASSOCIATED
+                            state.pendingPlatonicPolygonId = null
+                            state.platonicFlip = false
+                        }
+                    },
+                    isDark = SettingsManager.current.isDarkMode,
+                    ui = ui
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun RuledSurfaceButton(
+    state: MongeState,
+    buttonsize: Dp,
+) {
+    TooltipArea(
+        tooltip = {
+            Box(Modifier.background(Color.DarkGray).padding(6.dp)) {
+                Text("Přímková plocha", color = Color.White)
+            }
+        },
+        delayMillis = 500,
+    ) {
+        SkikoButton(
+            onClick = { startRuledSurfaceTool(state) },
+            width = buttonsize,
+            height = buttonsize,
+            enabled = state.projectionMode == ProjectionMode.MONGE &&
+                    (state.drawobjects == Mongeobjects.RULED_SURFACE ||
+                            state.projectionPhase in listOf("pudorys_start", "narys_start")),
+            isSelected = state.drawobjects == Mongeobjects.RULED_SURFACE,
+        ) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource("icons/konoid.svg"),
+                    contentDescription = "Přímková plocha",
+                    modifier = Modifier.size(buttonsize),
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun SolidOfRevolution(
+    state: MongeState,
+    buttonsize: Dp,
+) {
+    val iconSize = buttonsize
+    TooltipArea(
+        tooltip = {
+            Box(Modifier.background(Color.DarkGray).padding(6.dp)) {
+                Text("Rotační těleso", color = Color.White)
+            }
+        },
+        delayMillis = 500,
+    ) {
+        Box {
+            SkikoButton(
+                onClick = {
+                    state.drawobjects = Mongeobjects.SOLID_OF_REVOLUTION
+                    if (state.mongeMode == DrawingModeMonge.NARYS) startSolidOfRevolutionTool(state)
+                    else startSolidOfRevolutionToolPudorys(state)
+                },
+                enabled = state.projectionPhase in listOf("pudorys_start", "narys_start"),
+                width = buttonsize,
+                height = buttonsize,
+                isSelected = state.drawobjects == Mongeobjects.SOLID_OF_REVOLUTION
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource("icons/rot.svg"),
+                        contentDescription = "Rotační těleso",
+                        modifier = Modifier.size(iconSize)
+                    )
+                }
+            }
+        }
+    }
 }

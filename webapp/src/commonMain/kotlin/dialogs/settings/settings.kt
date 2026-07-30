@@ -126,7 +126,10 @@ fun SettingsDialog(onClose: () -> Unit) {
                                     label = "UI scale",
                                     description = "Měřítko ovládacích prvků aplikace.",
                                     value = working.UIscale,
-                                    range = 60f..100f,
+                                    // Spodní hranice je níž než na desktopu: na úzkých
+                                    // displejích si ovládací prvky jinak berou tolik místa,
+                                    // že překrývají plátno.
+                                    range = 40f..100f,
                                     step = 1f,
                                     valueText = { "${it.roundToInt()} %" },
                                     colors = colors,

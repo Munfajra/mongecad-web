@@ -1,6 +1,6 @@
 package monge.input.selection
-
 import utils.System
+
 import androidx.compose.ui.geometry.Offset
 import draw.mongescreen.labels.clearSelection
 import model.*
@@ -9,7 +9,9 @@ import model.classes.*
 import monge.input.combineprojections.handleCombineProjections
 import monge.input.planeobjects.planelift.decideObjectForLift
 import monge.input.planeobjects.planelift.finalizePendingConicLiftWithPlane
+import monge.input.ruledsurface.handleRuledSurfaceSelection
 import state.MongeState
+import ui.mongeui.toolbar.rightDescriptionBar.isProjectedLinePointOf
 import ui.mongeui.toolbar.setProjectionPhase
 import utils.getLogicalCursor
 import utils.toScreen
@@ -50,7 +52,7 @@ fun toggleSelectionPudorysLine(
                 abs(it.direction.y - line.direction.y) < tolerance
     }
     val pending = state.completionPending
-    if (false) return
+    // doplnění přímky v axonometrii web nemá
     if (pending is CompletionRequest.Line3DFromProjections &&
         pending.expect == DrawingModeMonge.PUDORYS &&
         line is Line3DProjectionPudorys
@@ -200,7 +202,7 @@ fun handleSelectionPudorysLine(
                 if (finalizePendingConicLiftWithPlane(state, plane)) return
 
                 if (state.drawobjects == Mongeobjects.RULED_SURFACE) {
-
+                    handleRuledSurfaceSelection(state)
                 }
 
                 println("Vybrána rovina v PŮDORYSU: ${plane.name}")
@@ -218,7 +220,7 @@ fun handleSelectionPudorysLine(
             handleCombineProjections(state, line)
             return
         }
-        if (false) return
+        // doplnění přímky v axonometrii web nemá
         // ⚙️ výchozí chování: výběr přímky
 
         clearSelection(state)
@@ -304,7 +306,7 @@ fun toggleSelectionNarysLine(
         println("Odznačena přímka v NÁRYSU: ${line.name}, (x=${line.point.x}, z=${line.point.z})")
     } else {
         val pending = state.completionPending
-        if (false) return
+        // doplnění přímky v axonometrii web nemá
         if (pending is CompletionRequest.Line3DFromProjections &&
             pending.expect == DrawingModeMonge.NARYS &&
             line is Line3DProjectionNarys
@@ -475,7 +477,7 @@ fun handleSelectionNarysLine(
                 if (finalizePendingConicLiftWithPlane(state, plane)) return
 
                 if (state.drawobjects == Mongeobjects.RULED_SURFACE) {
-
+                    handleRuledSurfaceSelection(state)
                 }
 
                 println("Vybrána rovina v NÁRYSU: ${plane.name}")
@@ -495,7 +497,7 @@ fun handleSelectionNarysLine(
             handleCombineProjections(state, line)
             return
         }
-        if (false) return
+        // doplnění přímky v axonometrii web nemá
         if ((state.drawobjects== Mongeobjects.TRANSPARALLEL || state.drawobjects== Mongeobjects.TRANSORTH) && (state.selectedLineForParallelPudorys != null
                     || state.selectedLineForParallelNarys != null ||
                     state.selectedSegmentForParallelPudorys != null || state.selectedSegmentForParallelNarys != null)){
@@ -553,19 +555,19 @@ fun toggleSelectionLine3D(l: Line3D, state: MongeState){
     state.lines3DAxo.firstOrNull { it.parent?.id == l.id || it.parentId == l.id }?.let {
         if (state.selectedLinesAxo.none { selected -> selected.id == it.id }) state.selectedLinesAxo.add(it)
     }
-    state.pointsPudorys.firstOrNull { false }?.let {
+    state.pointsPudorys.firstOrNull { isProjectedLinePointOf(it, l) }?.let {
         if (state.selectedPointsPudorys.none { selected -> selected.id == it.id }) state.selectedPointsPudorys.add(it)
     }
-    state.pointsNarys.firstOrNull { false }?.let {
+    state.pointsNarys.firstOrNull { isProjectedLinePointOf(it, l) }?.let {
         if (state.selectedPointsNarys.none { selected -> selected.id == it.id }) state.selectedPointsNarys.add(it)
     }
-    state.pointsBokorys.firstOrNull { false }?.let {
+    state.pointsBokorys.firstOrNull { isProjectedLinePointOf(it, l) }?.let {
         if (state.selectedPointsBokorys.none { selected -> selected.id == it.id }) state.selectedPointsBokorys.add(it)
     }
-    state.pointsAxo.firstOrNull { false }?.let {
+    state.pointsAxo.firstOrNull { isProjectedLinePointOf(it, l) }?.let {
         if (state.selectedPointsAxo.none { selected -> selected.id == it.id }) state.selectedPointsAxo.add(it)
     }
-
+    handleRuledSurfaceSelection(state)
 }
 fun handleSelectionBokorysLine(
     state: MongeState,
@@ -671,7 +673,7 @@ fun handleSelectionBokorysLine(
                 if (finalizePendingConicLiftWithPlane(state, plane)) return
 
                 if (state.drawobjects == Mongeobjects.RULED_SURFACE) {
-
+                    handleRuledSurfaceSelection(state)
                 }
 
                 println("Vybrána rovina v BOKORYSU: ${plane.name}")
@@ -680,7 +682,7 @@ fun handleSelectionBokorysLine(
             }
         }
         if (allowed) {
-            if (false) return
+            // doplnění přímky v axonometrii web nemá
 
 
             clearSelection(state)
@@ -766,7 +768,7 @@ fun toggleSelectionBokorysLine(
         state.selectedLinesBokorys.remove(existing)
         println("Odznačena přímka v BOKORYSU: ${line.name}, (x=${line.point.y}, z=${line.point.z})")
     } else {
-        if (false) return
+        // doplnění přímky v axonometrii web nemá
         state.selectedLinesBokorys.add(line)
         decideObjectForLift(state)
         advancePendingLineOrPointConstruction(state)
@@ -810,7 +812,7 @@ fun toggleSelectionAxoLine(
         state.selectedLinesAxo.remove(existing)
         println("Odznačena AXO přímka : ${line.name}, (x=${line.p.x}, y=${line.p.y})")
     } else {
-        if (false) return
+        // doplnění přímky v axonometrii web nemá
         state.selectedLinesAxo.add(line)
         decideObjectForLift(state)
         advancePendingLineOrPointConstruction(state)
@@ -861,7 +863,7 @@ fun handleSelectionAxoLine(
         val line = nearest
 
         if (allowed) {
-            if (false) return
+            // doplnění přímky v axonometrii web nemá
 
 
             clearSelection(state)

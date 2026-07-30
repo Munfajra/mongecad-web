@@ -13,6 +13,17 @@ import monge.input.conixections.*
 import monge.input.curves.*
 import monge.input.lines.*
 import monge.input.intersections.handleIntersectionClick
+import monge.input.quadrics.conicalsurface.handleConicalToolClick
+import monge.input.quadrics.cylindricalsurface.handleCylindricalToolClick
+import monge.input.quadrics.cylindricalsurface.handlePerpendicularCylinderClick
+import monge.input.quadrics.spheres.finalizeSphereConstruction
+import monge.input.quadrics.spheres.startSphereFromSelection
+import monge.input.solids.handlePyramidToolClick
+import monge.input.solids.handlePrismToolClick
+import monge.input.solids.handlePlatonicToolClick
+import monge.input.meridian.solidOfRevolutionNarys
+import monge.input.meridian.solidOfRevolutionPudorys
+import monge.input.ruledsurface.handleRuledSurfaceSelection
 import monge.input.planeobjects.conicsections.*
 import monge.input.planes.*
 import monge.input.points.*
@@ -46,8 +57,22 @@ fun handleClick(
         return
     }
 
-    // Šroubovice, rotační plochy, kvadriky, tělesa, přímkové plochy a průniky
-    // web nemá – odpovídající tlačítka nejsou v toolbaru, takže se sem nedostane.
+    // Šroubovici web zatím nemá – tlačítko není v toolbaru, takže se sem nedostane.
+
+    if (state.mongeMode == DrawingModeMonge.NARYS && state.drawobjects == Mongeobjects.SOLID_OF_REVOLUTION)
+    {
+        if (state.projectionPhase == "narys_start") {
+            setProjectionPhase("rev_axis_select", state)
+        }
+        solidOfRevolutionNarys(state)
+    }
+     if (state.mongeMode == DrawingModeMonge.PUDORYS && state.drawobjects == Mongeobjects.SOLID_OF_REVOLUTION)
+     {
+         if (state.projectionPhase == "pudorys_start") {
+             setProjectionPhase("rev_axis_select_pudorys", state)
+         }
+         solidOfRevolutionPudorys(state)
+     }
      if (state.mongeMode== DrawingModeMonge.PUDORYS&&state.drawobjects== Mongeobjects.CURVE&&
          (state.projekcnityp== ProjectionType.SINGLE||state.projekcnityp== ProjectionType.AUXILIARY)) {
          setProjectionPhase("pudorys_curve_pick",state)
@@ -261,7 +286,7 @@ fun handleClick(
      selection(
          state = state,)
      if (state.drawobjects == Mongeobjects.RULED_SURFACE) {
-
+         handleRuledSurfaceSelection(state)
          change.consume()
          return
      }
@@ -595,6 +620,39 @@ fun handleClick(
          arcEllipseNarys3D(state,snappedPointLogical,cursor)
          arcParabolaNarys3D(state,snappedPointLogical,cursor)
          arcHyperbolaNarys3D(state,snappedPointLogical,cursor)
+     }
+     //kužel
+     handleConicalToolClick(state=state)
+     //jehlan
+     handlePyramidToolClick(state)
+     //platónské těleso
+     handlePlatonicToolClick(state)
+     //válec
+     handleCylindricalToolClick(state)
+     run {
+         val logical = if (state.mongeMode == DrawingModeMonge.NARYS)
+             getLogicalCursorNarys(snappedPointLogical, cursor, state.canvasOffset, state.scale,
+                 state.canvasWidth, state.canvasHeight, state.xAxisDirection)
+         else
+             getLogicalCursor(snappedPointLogical, cursor, state.canvasOffset, state.scale,
+                 state.canvasWidth, state.canvasHeight,
+                 state.xAxisDirection == XAxisDirection.POSITIVE_LEFT,
+                 state.yAxisDirectionPlane == YAxisDirectionPlane.POSITIVE_UP)
+         // Pokud klik už posunul fázi PICK_CONIC_PERP → PICK_CENTER_PERP přes výběr kuželosečky,
+         // druhé volání by týmž klikem rovnou umístilo horní podstavu.
+         val perpPhaseJustAdvanced = cylinderPhaseBeforeSelection == CylinderPhase.PICK_CONIC_PERP &&
+             state.cylinderPhase == CylinderPhase.PICK_CENTER_PERP
+         if (!perpPhaseJustAdvanced) handlePerpendicularCylinderClick(state, logical)
+         //kolmý hranol
+         handlePrismToolClick(state, logical)
+     }
+     //koule
+     if (state.drawobjects == Mongeobjects.SPHERE && (state.projectionPhase == "pudorys_start" ||state.projectionPhase == "narys_start"  )){
+         startSphereFromSelection(state)
+     }
+     else if(state.drawobjects == Mongeobjects.SPHERE &&
+         (state.projectionPhase == "sphere_radius_pick_pudorys" || state.projectionPhase == "sphere_radius_pick_narys")) {
+         finalizeSphereConstruction(state,snappedPointLogical)
      }
      //nuhelník
      if (state.drawobjects == Mongeobjects.REGULAR_POLYGON_IN_PLANE && state.mongeMode == DrawingModeMonge.PUDORYS) {

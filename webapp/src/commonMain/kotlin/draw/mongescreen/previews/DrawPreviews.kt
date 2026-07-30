@@ -97,6 +97,7 @@ fun DrawScope.drawAllDashedPreviewsNarys(
     drawParabolaArcPreviewNarysAsoc(state, snappedPointLogical)
     drawHyperbolaArcPreviewNarys3D(state, snappedPointLogical)
 
+    drawSpherePreviewNarys(state, snappedPointLogical)
 
     previewNarysLineSegmentCursor(state,snappedPointLogical)
 }
@@ -157,8 +158,10 @@ fun DrawScope.drawAllDashedPreviewsPudorys(
     drawHyperbolaArcPreviewPudorys(state, snappedPointLogical)
     drawEllipseArcPreviewPudorys(state, snappedPointLogical)
 
-
-
+    drawSpherePreviewPudorys(state, snappedPointLogical)
+    drawPerpCylinderPreview(state, snappedPointLogical)
+    drawPerpPrismPreview(state, snappedPointLogical)
+    drawPlatonicPreview(state)
 
     drawCirclePreviewPudorys(state, snappedPointLogical)
     drawRegularPolygonPreview(state, snappedPointLogical)

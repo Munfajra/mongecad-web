@@ -5,7 +5,11 @@ import model.Mongeobjects
 import model.classes.Segment2DBokorys
 import model.classes.Segment2DNarys
 import model.classes.Segment2DPudorys
+import monge.input.meridian.solidOfRevolutionNarys
+import monge.input.meridian.solidOfRevolutionPudorys
+import monge.input.ruledsurface.handleRuledSurfaceSelection
 import state.MongeState
+import ui.mongeui.toolbar.rightDescriptionBar.ObjectList.selectSolidOfRevolutionAll
 
 fun clearCurveSelection(state: MongeState) {
     state.selectedCurve3DId = null
@@ -21,7 +25,7 @@ fun toggleSelectionCurve3D(state: MongeState, curveId: String) {
 
     if (!already) {
         state.selectedCurve3DId = curveId
-
+        handleRuledSurfaceSelection(state)
     }
 }
 fun toggleSelectionCurvePudorys(
@@ -49,7 +53,7 @@ fun toggleSelectionCurvePudorys(
 
     if (!already) {
         state.selectedCurvePudorysId = curveId
-
+        solidOfRevolutionPudorys(state)
     }
 }
 fun toggleSelectionCurveNarys(
@@ -75,7 +79,7 @@ fun toggleSelectionCurveNarys(
 
     if (!already) {
         state.selectedCurveNarysId = curveId
-
+        solidOfRevolutionNarys(state)
     }
 }
 
@@ -165,13 +169,13 @@ private fun trySelectSolidOfRevolutionForCurve(state: MongeState, curveId: Strin
         it.id in ids ||
             it.meridianIdsNarys.any { m -> m in ids } ||
             it.mirroredMeridianIdsNarys.any { m -> m in ids }
-    }?.let { Unit; return true }
+    }?.let { selectSolidOfRevolutionAll(state, it, clearAllOnClick); return true }
 
     state.solidsOfRevolutionPudorys.firstOrNull {
         it.id in ids ||
             it.meridianIdsPudorys.any { m -> m in ids } ||
             it.mirroredMeridianIdsPudorys.any { m -> m in ids }
-    }?.let { Unit; return true }
+    }?.let { selectSolidOfRevolutionAll(state, it, clearAllOnClick); return true }
 
     return false
 }
@@ -191,7 +195,7 @@ fun trySelectSolidOfRevolutionForPart(
             solid.circleIdsPudorys.any { it in ids } ||
             solid.circleIdsNarys.any { it in ids } ||
             (objectId.startsWith(SOR_BOKORYS_MERIDIAN_ID_PREFIX) && objectId.contains(solid.id))
-    }?.let { Unit; return true }
+    }?.let { selectSolidOfRevolutionAll(state, it, clearAllOnClick); return true }
 
     state.solidsOfRevolutionPudorys.firstOrNull { solid ->
         solid.id in ids ||
@@ -200,7 +204,7 @@ fun trySelectSolidOfRevolutionForPart(
             solid.circleIdsPudorys.any { it in ids } ||
             solid.circleIdsNarys.any { it in ids } ||
             (objectId.startsWith(SOR_BOKORYS_MERIDIAN_ID_PREFIX) && objectId.contains(solid.id))
-    }?.let { Unit; return true }
+    }?.let { selectSolidOfRevolutionAll(state, it, clearAllOnClick); return true }
 
     return false
 }

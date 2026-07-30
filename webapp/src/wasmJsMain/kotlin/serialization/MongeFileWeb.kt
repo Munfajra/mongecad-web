@@ -47,7 +47,8 @@ actual fun saveMongeFile(state: MongeState) {
     } else {
         val parts = JsArray<JsAny?>()
         parts[0] = text.toJsString()
-        downloadBlob(Blob(parts, BlobPropertyBag(type = "application/json")), name)
+        // Taky octet-stream, ať Android nepřipíše `.json` – viz [gzipToBlob].
+        downloadBlob(Blob(parts, BlobPropertyBag(type = "application/octet-stream")), name)
     }
 
     state.isDirty = false
@@ -113,11 +114,18 @@ private external fun fileArrayBuffer(file: File): Promise<JsAny>
 )
 private external fun gunzipToText(file: File): Promise<JsString>
 
-/** Zabalení textu do gzip Blobu prohlížečem. */
+/**
+ * Zabalení textu do gzip Blobu prohlížečem.
+ *
+ * Blob z `Response.blob()` nemá MIME typ (Response nemá Content-Type), a to
+ * Androidu nestačí: jeho správce stahování si typ domyslí jako textový a
+ * k názvu připíše `.txt` (`vykres.monge.txt`). `application/octet-stream`
+ * znamená „neznámá binárka", u které se přípona nedoplňuje.
+ */
 @JsFun(
     """(text) => new Response(
         new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))
-    ).blob()"""
+    ).blob().then((blob) => new Blob([blob], { type: 'application/octet-stream' }))"""
 )
 private external fun gzipToBlob(text: JsString): Promise<JsAny>
 

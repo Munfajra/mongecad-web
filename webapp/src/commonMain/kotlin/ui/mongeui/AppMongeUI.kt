@@ -7,12 +7,14 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -35,12 +37,14 @@ import serialization.SettingsManager
 import state.MongeState
 import state.snapMonge.computeSnappedPoint
 import ui.WebCursor
+import ui.setCanvasCursor
 import ui.createAxoCursor
 import ui.handleCanvasNavigationEvent
 import ui.canvasClickChange
 import ui.isCanvasClickGesture
 import ui.mongeui.toolbar.LeftPanelToolbar
 import ui.mongeui.toolbar.MongeToolbar
+import ui.gl3d.Gl3DViewport
 import ui.mongeui.toolbar.rightDescriptionBar.RightSidebar
 import ui.theme.LocalMongeDimens
 import ui.windowCursor
@@ -355,6 +359,12 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                     .weight(1f)
                     .fillMaxHeight()
             ) {
+                // Šířky obou polovin kreslicí plochy v pixelech: [0] = 2D
+                // plátno, [1] = 3D náhled. Schválně to není Compose stav –
+                // táhlo je jen čte při tažení a rekompozice celého UI při
+                // každé změně velikosti okna by byla zbytečná.
+                val splitAreaWidthPx = remember { intArrayOf(0, 0) }
+
                 // Řádek přes celou výšku: vlevo canvas se svým horním barem,
                 // vpravo panel „Aktuální výběr" (sahá až nahoru, přes úroveň baru).
                 Row(
@@ -362,10 +372,19 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                         .weight(1f)
                         .fillMaxWidth()
                 ) {
+                    // Poměr 2D plátna a 3D náhledu drží táhlo mezi nimi. Šířka
+                    // se počítá ze součtu obou polovin, ne z celého řádku –
+                    // pravý panel má pevnou šířku a do poměru nepatří.
+                    val splitRatio = if (state.show3DPanel) {
+                        state.gl3dSplitRatio.coerceIn(MIN_SPLIT_RATIO, MAX_SPLIT_RATIO)
+                    } else {
+                        0f
+                    }
                     Column(
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1f - splitRatio)
                             .fillMaxHeight()
+                            .onSizeChanged { splitAreaWidthPx[0] = it.width }
                     ) {
                         Row(
                             modifier = Modifier
@@ -438,6 +457,41 @@ fun AppMongeUI(state: MongeState, requestGlobalFocus: () -> Unit) {
                         }
                     }
 
+                    // 3D náhled scény. Desktop na tohle otevírá samostatné
+                    // OpenGL okno; na webu je to druhá polovina kreslicí
+                    // plochy s vlastním WebGL plátnem. Je schválně mimo Row
+                    // s 2D plátnem, aby si nesahaly do vstupu.
+                    if (state.show3DPanel) {
+                        Box(
+                            modifier = Modifier
+                                .weight(splitRatio)
+                                .fillMaxHeight()
+                                .onSizeChanged { splitAreaWidthPx[1] = it.width }
+                        ) {
+                            Gl3DViewport(
+                                state = state,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            // Táhlo leží na hranici mezi plátnem a 3D scénou.
+                            // Kreslí se až po viewportu, aby se neztratilo
+                            // v díře vyříznuté do Compose plátna.
+                            VerticalResizeHandleOverlay(
+                                colors = colors,
+                                hitWidthDp = 12f * ui.dp,
+                                lineWidthDp = 1f * ui.dp,
+                                modifier = Modifier.align(Alignment.CenterStart),
+                                onDragDeltaX = { dx ->
+                                    val total = (splitAreaWidthPx[0] + splitAreaWidthPx[1]).toFloat()
+                                    if (total > 1f) {
+                                        state.gl3dSplitRatio =
+                                            (state.gl3dSplitRatio - dx / total)
+                                                .coerceIn(MIN_SPLIT_RATIO, MAX_SPLIT_RATIO)
+                                    }
+                                },
+                            )
+                        }
+                    }
+
                     // Pravý panel (fixní šířka) + overlay resize handle
                     Box(
                         modifier = Modifier.width(sidebarWidth)
@@ -482,8 +536,22 @@ fun VerticalResizeHandleOverlay(
 ) {
     val base = colors.base
 
+    // Že je čára táhlo, se pozná až podle kurzoru a zvýraznění pod myší.
+    // Uprostřed je proto trvale vidět úchyt (tři tečky) a při najetí nebo
+    // tažení čára ztmavne a rozšíří se.
+    var hovered by remember { mutableStateOf(false) }
+    var dragging by remember { mutableStateOf(false) }
+    val active = hovered || dragging
+
     val dragState = rememberDraggableState { delta ->
         onDragDeltaX(delta)
+    }
+
+    // Kurzor drží CSS na Compose plátně – `PointerIcon` v common API žádnou
+    // variantu pro změnu velikosti nemá.
+    DisposableEffect(active) {
+        setCanvasCursor(if (active) "ew-resize" else "default")
+        onDispose { setCanvasCursor("default") }
     }
 
     Box(
@@ -492,19 +560,35 @@ fun VerticalResizeHandleOverlay(
             .offset(x = -hitWidthDp / 2)
             .width(hitWidthDp)
             .background(Color.Transparent)
-            .pointerHoverIcon(PointerIcon.Default)
+            .onPointerEvent(PointerEventType.Enter) { hovered = true }
+            .onPointerEvent(PointerEventType.Exit) { hovered = false }
             .draggable(
                 state = dragState,
-                orientation = Orientation.Horizontal
+                orientation = Orientation.Horizontal,
+                onDragStarted = { dragging = true },
+                onDragStopped = { dragging = false },
             ),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(lineWidthDp)
-                .background(base.copy(alpha = 0.18f))
+                .width(if (active) lineWidthDp * 3 else lineWidthDp)
+                .background(base.copy(alpha = if (active) 0.55f else 0.18f))
         )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .size(3.dp)
+                        .clip(CircleShape)
+                        .background(base.copy(alpha = if (active) 0.85f else 0.45f))
+                )
+            }
+        }
     }
 }
 
@@ -520,3 +604,7 @@ fun ReturnFocusWhenClosed(
         wasShowing = showing
     }
 }
+
+/** Meze poměru 2D plátna a 3D náhledu – ani jedna polovina nesmí zmizet. */
+private const val MIN_SPLIT_RATIO = 0.15f
+private const val MAX_SPLIT_RATIO = 0.85f

@@ -17,7 +17,7 @@ private fun deleteIntersectionGroupsTouchingOperands(state: MongeState, operandI
         .filter { it.operandAId in operandIds || it.operandBId in operandIds }
         .map { it.id }
         .toList()
-    groupIds.forEach { Unit }
+    groupIds.forEach { deleteIntersectionGroup(state, it) }
 }
 
 private fun deleteSolidOfRevolutionById(state: MongeState, id: String): Boolean {
@@ -25,12 +25,12 @@ private fun deleteSolidOfRevolutionById(state: MongeState, id: String): Boolean 
 
     state.solidsOfRevolutionNarys.firstOrNull { it.id == id }?.let { sor ->
         deleteIntersectionGroupsTouchingOperands(state, setOf(sor.id))
-
+        // deleteSoR – doplní etapa C (rotační plochy)
         deleted = true
     }
     state.solidsOfRevolutionPudorys.firstOrNull { it.id == id }?.let { sor ->
         deleteIntersectionGroupsTouchingOperands(state, setOf(sor.id))
-
+        // deleteSoRPud – doplní etapa C (rotační plochy)
         deleted = true
     }
 
@@ -70,12 +70,289 @@ private fun renamedPointId(state: MongeState): String? =
         else -> null
     }
 
+fun deleteIntersectionGroup(state: MongeState, groupId: String): Boolean {
+    val group = state.intersectionGroups.firstOrNull { it.id == groupId } ?: run {
+        if (state.selectedIntersectionGroupId == groupId) state.selectedIntersectionGroupId = null
+        return false
+    }
 
+    val pointIds = group.parts
+        .filter { it.kind == IntersectionPartKind.POINT3D }
+        .mapTo(mutableSetOf()) { it.id }
+    val lineIds = group.parts
+        .filter { it.kind == IntersectionPartKind.LINE3D }
+        .mapTo(mutableSetOf()) { it.id }
+    val segmentIds = group.parts
+        .filter { it.kind == IntersectionPartKind.SEGMENT3D }
+        .mapTo(mutableSetOf()) { it.id }
+    val conicIds = group.parts
+        .filter { it.kind == IntersectionPartKind.CONIC3D }
+        .mapTo(mutableSetOf()) { it.id }
+    val curveIds = group.parts
+        .filter { it.kind == IntersectionPartKind.CURVE3D }
+        .mapTo(mutableSetOf()) { it.id }
+
+    state.segments3D
+        .filter { it.id in segmentIds }
+        .forEach { segment ->
+            pointIds += segment.start.id
+            pointIds += segment.end.id
+        }
+    state.curves3D
+        .filter { it.id in curveIds }
+        .flatMapTo(pointIds) { it.pointIds }
+
+    val linePIds = state.lines3DPudorys.filter { (it.parent?.id ?: it.parentId) in lineIds }.mapTo(mutableSetOf()) { it.id }
+    val lineNIds = state.lines3DNarys.filter { (it.parent?.id ?: it.parentId) in lineIds }.mapTo(mutableSetOf()) { it.id }
+    val lineBIds = state.lines3DBokorys.filter { (it.parent?.id ?: it.parentId) in lineIds }.mapTo(mutableSetOf()) { it.id }
+    val lineAIds = state.lines3DAxo.filter { (it.parent?.id ?: it.parentId) in lineIds }.mapTo(mutableSetOf()) { it.id }
+
+    val segPIds = state.segmentsPudorys.filter { (it.parent?.id ?: it.parentId) in segmentIds }.mapTo(mutableSetOf()) { it.id }
+    val segNIds = state.segmentsNarys.filter { (it.parent?.id ?: it.parentId) in segmentIds }.mapTo(mutableSetOf()) { it.id }
+    val segBIds = state.segmentsBokorys.filter { (it.parent?.id ?: it.parentId) in segmentIds }.mapTo(mutableSetOf()) { it.id }
+    val segAIds = state.segmentsAxo.filter { (it.parent?.id ?: it.parentId) in segmentIds }.mapTo(mutableSetOf()) { it.id }
+
+    val conicPIds = state.conicsPudorys.filter { (it.parent?.id ?: it.parentId) in conicIds }.mapTo(mutableSetOf()) { it.id }
+    val conicNIds = state.conicsNarys.filter { (it.parent?.id ?: it.parentId) in conicIds }.mapTo(mutableSetOf()) { it.id }
+    val conicBIds = state.conicsBokorys.filter { (it.parent?.id ?: it.parentId) in conicIds }.mapTo(mutableSetOf()) { it.id }
+    val conicAIds = state.conicsAxo.filter { (it.parent?.id ?: it.parentId) in conicIds }.mapTo(mutableSetOf()) { it.id }
+
+    val curvePIds = state.curvesPudorys.filter { it.parentId in curveIds }.mapTo(mutableSetOf()) { it.id }
+    val curveNIds = state.curvesNarys.filter { it.parentId in curveIds }.mapTo(mutableSetOf()) { it.id }
+    val curveBIds = state.curvesBokorys.filter { it.parentId in curveIds }.mapTo(mutableSetOf()) { it.id }
+    val curveAIds = state.curvesAxo.filter { it.parentId in curveIds }.mapTo(mutableSetOf()) { it.id }
+
+    val linePointPIds = state.pointsPudorys.filter { it.parentLine?.id in lineIds || it.pendingParentLineId in lineIds }.mapTo(mutableSetOf()) { it.id }
+    val linePointNIds = state.pointsNarys.filter { it.parentLine?.id in lineIds || it.pendingParentLineId in lineIds }.mapTo(mutableSetOf()) { it.id }
+    val linePointBIds = state.pointsBokorys.filter { it.parentLine?.id in lineIds || it.pendingParentLineId in lineIds }.mapTo(mutableSetOf()) { it.id }
+    val linePointAIds = state.pointsAxo.filter { it.parentLine?.id in lineIds || it.pendingParentLineId in lineIds }.mapTo(mutableSetOf()) { it.id }
+
+    val pointPIds = state.pointsPudorys
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.id in linePointPIds ||
+                    it.parentSegment?.let { segment -> segment.id in segPIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .mapTo(mutableSetOf()) { it.id }
+    val pointNIds = state.pointsNarys
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.id in linePointNIds ||
+                    it.parentSegment?.let { segment -> segment.id in segNIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .mapTo(mutableSetOf()) { it.id }
+    val pointBIds = state.pointsBokorys
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.id in linePointBIds ||
+                    it.parentSegment?.let { segment -> segment.id in segBIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .mapTo(mutableSetOf()) { it.id }
+    val pointAIds = state.pointsAxo
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.id in linePointAIds ||
+                    it.parentSegment?.let { segment -> segment.id in segAIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .mapTo(mutableSetOf()) { it.id }
+
+    linePIds.forEach { state.labelOffsetsPudorys.remove(it) }
+    lineNIds.forEach { state.labelOffsetsNarys.remove(it) }
+    lineBIds.forEach { state.labelOffsetsBokorys.remove(it) }
+    lineAIds.forEach { state.labelOffsetsAxoLines.remove(it) }
+    pointPIds.forEach { state.labelOffsetsPointsPudorys.remove(it) }
+    pointNIds.forEach { state.labelOffsetsPointsNarys.remove(it) }
+    pointBIds.forEach { state.labelOffsetsPointsBokorys.remove(it) }
+    pointAIds.forEach { state.labelOffsetsPointsAxo.remove(it) }
+    conicPIds.forEach { state.conicInputPointsPudorys.remove(it); state.hyperbolaInputsPudorys.remove(it) }
+    conicNIds.forEach { state.conicInputPointsNarys.remove(it); state.hyperbolaInputsNarys.remove(it) }
+    conicBIds.forEach { state.conicInputPointsBokorys.remove(it); state.hyperbolaInputsBokorys.remove(it) }
+    conicAIds.forEach { state.conicInputPointsAxo.remove(it); state.hyperbolaInputsAxo.remove(it) }
+
+    state.selectedIntersectionGroupId = null
+    state.intersectionGroups.removeAll { intersection ->
+        intersection.id == group.id || intersection.parts.any { part ->
+            when (part.kind) {
+                IntersectionPartKind.POINT3D -> part.id in pointIds
+                IntersectionPartKind.LINE3D -> part.id in lineIds
+                IntersectionPartKind.SEGMENT3D -> part.id in segmentIds
+                IntersectionPartKind.CONIC3D -> part.id in conicIds
+                IntersectionPartKind.CURVE3D -> part.id in curveIds
+            }
+        }
+    }
+
+    state.selectedPoints3D.removeAll { it.id in pointIds }
+    state.selectedLines3D.removeAll { it.id in lineIds }
+    state.selectedSegments3D.removeAll { it.id in segmentIds }
+    state.selectedPointsPudorys.removeAll { it.id in pointPIds || it.parent?.id in pointIds }
+    state.selectedPointsNarys.removeAll { it.id in pointNIds || it.parent?.id in pointIds }
+    state.selectedPointsBokorys.removeAll { it.id in pointBIds || it.parent?.id in pointIds }
+    state.selectedPointsAxo.removeAll { it.id in pointAIds || it.parent?.id in pointIds }
+    state.selectedLinesPudorys.removeAll { it.id in linePIds || (it as? Line3DProjectionPudorys)?.let { line -> (line.parent?.id ?: line.parentId) in lineIds } == true }
+    state.selectedLinesNarys.removeAll { it.id in lineNIds || (it as? Line3DProjectionNarys)?.let { line -> (line.parent?.id ?: line.parentId) in lineIds } == true }
+    state.selectedLinesBokorys.removeAll { it.id in lineBIds || (it as? Line3DProjectionBokorys)?.let { line -> (line.parent?.id ?: line.parentId) in lineIds } == true }
+    state.selectedLinesAxo.removeAll { it.id in lineAIds || (it.parent?.id ?: it.parentId) in lineIds }
+    state.selectedSegmentsPudorys.removeAll { it.id in segPIds || segmentPudorysParentId(it) in segmentIds }
+    state.selectedSegmentsNarys.removeAll { it.id in segNIds || segmentNarysParentId(it) in segmentIds }
+    state.selectedSegmentsBokorys.removeAll { it.id in segBIds || segmentBokorysParentId(it) in segmentIds }
+    state.selectedSegmentsAxo.removeAll { it.id in segAIds || (it.parent?.id ?: it.parentId) in segmentIds }
+    state.selectedConicsPudorys.removeAll { it.id in conicPIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.selectedConicsNarys.removeAll { it.id in conicNIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.selectedConicsBokorys.removeAll { it.id in conicBIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.selectedConicsAxo.removeAll { it.id in conicAIds || (it.parent?.id ?: it.parentId) in conicIds }
+    if (state.selectedCurve3DId in curveIds) state.selectedCurve3DId = null
+    if (state.selectedCurvePudorysId in curvePIds) state.selectedCurvePudorysId = null
+    if (state.selectedCurveNarysId in curveNIds) state.selectedCurveNarysId = null
+    if (state.selectedCurveBokorysId in curveBIds) state.selectedCurveBokorysId = null
+    if (state.selectedCurveAxoId in curveAIds) state.selectedCurveAxoId = null
+
+    state.pointsPudorys.removeAll { it.id in pointPIds || it.parent?.id in pointIds }
+    state.pointsNarys.removeAll { it.id in pointNIds || it.parent?.id in pointIds }
+    state.pointsBokorys.removeAll { it.id in pointBIds || it.parent?.id in pointIds }
+    state.pointsAxo.removeAll { it.id in pointAIds || it.parent?.id in pointIds }
+    state.lines3DPudorys.removeAll { it.id in linePIds || (it.parent?.id ?: it.parentId) in lineIds }
+    state.lines3DNarys.removeAll { it.id in lineNIds || (it.parent?.id ?: it.parentId) in lineIds }
+    state.lines3DBokorys.removeAll { it.id in lineBIds || (it.parent?.id ?: it.parentId) in lineIds }
+    state.lines3DAxo.removeAll { it.id in lineAIds || (it.parent?.id ?: it.parentId) in lineIds }
+    state.segmentsPudorys.removeAll { it.id in segPIds || (it.parent?.id ?: it.parentId) in segmentIds }
+    state.segmentsNarys.removeAll { it.id in segNIds || (it.parent?.id ?: it.parentId) in segmentIds }
+    state.segmentsBokorys.removeAll { it.id in segBIds || (it.parent?.id ?: it.parentId) in segmentIds }
+    state.segmentsAxo.removeAll { it.id in segAIds || (it.parent?.id ?: it.parentId) in segmentIds }
+    state.conicsPudorys.removeAll { it.id in conicPIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.conicsNarys.removeAll { it.id in conicNIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.conicsBokorys.removeAll { it.id in conicBIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.conicsAxo.removeAll { it.id in conicAIds || (it.parent?.id ?: it.parentId) in conicIds }
+    state.curvesPudorys.removeAll { it.id in curvePIds || it.parentId in curveIds }
+    state.curvesNarys.removeAll { it.id in curveNIds || it.parentId in curveIds }
+    state.curvesBokorys.removeAll { it.id in curveBIds || it.parentId in curveIds }
+    state.curvesAxo.removeAll { it.id in curveAIds || it.parentId in curveIds }
+
+    state.sharedPoints3D.removeAll { it.id in pointIds }
+    state.lines3D.removeAll { it.id in lineIds }
+    state.segmentSolids3D.removeAll { solid -> solid.segmentIds3D.any { it in segmentIds } }
+    state.segments3D.removeAll { it.id in segmentIds }
+    state.conics3D.removeAll { it.id in conicIds }
+    state.curves3D.removeAll { it.id in curveIds }
+
+    if (renamedPointId(state) in pointIds) state.rename.pointBeingRenamed = null
+
+    commitSnapshot(state)
+    state.triggerRedraw++
+    return true
+}
+
+fun deleteSegmentSolid(state: MongeState, solidId: String): Boolean {
+    val solid = state.segmentSolids3D.firstOrNull { it.id == solidId } ?: run {
+        state.selectedSegmentSolids3D.removeAll { it.id == solidId }
+        return false
+    }
+    deleteIntersectionGroupsTouchingOperands(state, setOf(solid.id))
+
+    val segmentIds = solid.segmentIds3D.toHashSet()
+    val pointIds = (solid.vertexPointIds + state.segments3D
+        .filter { it.id in segmentIds }
+        .flatMap { listOf(it.start.id, it.end.id) })
+        .toHashSet()
+
+    val polygonsToRemove = state.polygons3D.filter { polygon ->
+        polygon.id in solid.polygonIds || polygon.segmentIds3D.any { it in segmentIds }
+    }
+    val polygonIds = polygonsToRemove.map { it.id }.toHashSet()
+
+    val segPIds = (state.segmentsPudorys
+        .filter { it.parent?.id in segmentIds || it.parentId in segmentIds }
+        .map { it.id } + polygonsToRemove.flatMap { it.segmentIdsPudorys })
+        .toHashSet()
+    val segNIds = (state.segmentsNarys
+        .filter { it.parent?.id in segmentIds || it.parentId in segmentIds }
+        .map { it.id } + polygonsToRemove.flatMap { it.segmentIdsNarys })
+        .toHashSet()
+    val segBIds = state.segmentsBokorys
+        .filter { it.parent?.id in segmentIds || it.parentId in segmentIds }
+        .map { it.id }
+        .toHashSet()
+    val segAIds = (state.segmentsAxo
+        .filter { it.parent?.id in segmentIds || it.parentId in segmentIds }
+        .map { it.id } + polygonsToRemove.flatMap { it.segmentIdsAxo })
+        .toHashSet()
+
+    val ptPIds = (polygonsToRemove.flatMap { it.vertexPointIdsPudorys } + state.pointsPudorys
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.parentSegment?.let { segment -> segment.id in segPIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .map { it.id })
+        .toHashSet()
+    val ptNIds = (polygonsToRemove.flatMap { it.vertexPointIdsNarys } + state.pointsNarys
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.parentSegment?.let { segment -> segment.id in segNIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .map { it.id })
+        .toHashSet()
+    val ptBIds = state.pointsBokorys
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.parentSegment?.let { segment -> segment.id in segBIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .map { it.id }
+        .toHashSet()
+    val ptAIds = state.pointsAxo
+        .filter {
+            it.parent?.id in pointIds ||
+                    it.parentSegment?.let { segment -> segment.id in segAIds || (segment.parent?.id ?: segment.parentId) in segmentIds } == true
+        }
+        .map { it.id }
+        .toHashSet()
+
+    ptPIds.forEach { state.labelOffsetsPointsPudorys.remove(it) }
+    ptNIds.forEach { state.labelOffsetsPointsNarys.remove(it) }
+    ptBIds.forEach { state.labelOffsetsPointsBokorys.remove(it) }
+    ptAIds.forEach { state.labelOffsetsPointsAxo.remove(it) }
+
+    state.selectedSegmentSolids3D.removeAll { it.id == solid.id || it.segmentIds3D.any { segmentId -> segmentId in segmentIds } }
+    state.selectedSegments3D.removeAll { it.id in segmentIds }
+    state.selectedSegmentsPudorys.removeAll { it.id in segPIds || segmentPudorysParentId(it) in segmentIds }
+    state.selectedSegmentsNarys.removeAll { it.id in segNIds || segmentNarysParentId(it) in segmentIds }
+    state.selectedSegmentsBokorys.removeAll { it.id in segBIds || segmentBokorysParentId(it) in segmentIds }
+    state.selectedSegmentsAxo.removeAll { it.id in segAIds || it.parent?.id in segmentIds || it.parentId in segmentIds }
+
+    state.selectedPoints3D.removeAll { it.id in pointIds }
+    state.selectedPointsPudorys.removeAll { it.id in ptPIds || it.parent?.id in pointIds }
+    state.selectedPointsNarys.removeAll { it.id in ptNIds || it.parent?.id in pointIds }
+    state.selectedPointsBokorys.removeAll { it.id in ptBIds || it.parent?.id in pointIds }
+    state.selectedPointsAxo.removeAll { it.id in ptAIds || it.parent?.id in pointIds }
+
+    state.selectedPolygons.removeAll { it.id in polygonIds }
+    if (state.selectedPolygon?.id in polygonIds) state.selectedPolygon = null
+
+    state.pointsPudorys.removeAll { it.id in ptPIds || it.parent?.id in pointIds }
+    state.pointsNarys.removeAll { it.id in ptNIds || it.parent?.id in pointIds }
+    state.pointsBokorys.removeAll { it.id in ptBIds || it.parent?.id in pointIds }
+    state.pointsAxo.removeAll { it.id in ptAIds || it.parent?.id in pointIds }
+
+    state.segmentsPudorys.removeAll { it.id in segPIds || it.parent?.id in segmentIds || it.parentId in segmentIds }
+    state.segmentsNarys.removeAll { it.id in segNIds || it.parent?.id in segmentIds || it.parentId in segmentIds }
+    state.segmentsBokorys.removeAll { it.id in segBIds || it.parent?.id in segmentIds || it.parentId in segmentIds }
+    state.segmentsAxo.removeAll { it.id in segAIds || it.parent?.id in segmentIds || it.parentId in segmentIds }
+
+    state.polygons3D.removeAll { it.id in polygonIds }
+    state.segmentSolids3D.removeAll { it.id == solid.id || it.segmentIds3D.any { segmentId -> segmentId in segmentIds } }
+    state.segments3D.removeAll { it.id in segmentIds }
+    state.sharedPoints3D.removeAll { it.id in pointIds }
+
+    if (renamedPointId(state) in pointIds) state.rename.pointBeingRenamed = null
+
+    commitSnapshot(state)
+    state.triggerRedraw++
+    return true
+}
 
 fun deleteSelected(state: MongeState) {
     val selectedRuledSurfaceId = state.selectedRuledSurfaceId
     if (selectedRuledSurfaceId != null) {
-
+        // deleteRuledSurface – doplní etapa D (přímkové plochy)
         clearSelection(state)
         commitSnapshot(state)
         state.triggerRedraw++
@@ -84,14 +361,14 @@ fun deleteSelected(state: MongeState) {
 
     val selectedIntersectionGroupId = state.selectedIntersectionGroupId
     if (selectedIntersectionGroupId != null) {
-
+        deleteIntersectionGroup(state, selectedIntersectionGroupId)
         clearSelection(state)
         return
     }
 
     val selectedSolid = state.selectedSegmentSolids3D.firstOrNull()
     if (selectedSolid != null) {
-
+        deleteSegmentSolid(state, selectedSolid.id)
         clearSelection(state)
         return
     }
@@ -110,7 +387,7 @@ fun deleteSelected(state: MongeState) {
 
         val selAOseg = state.selectedAOSegIds.firstOrNull()
         selAOseg?.let {
-
+            // deleteAOSegment – AO overlay je jen v axonometrii, web ho nemá
         }
         val selAOl = state.selectedAOLineIds.firstOrNull()
         selAOl?.let { l ->
@@ -288,7 +565,7 @@ fun deleteSelected(state: MongeState) {
     val selectedCone = state.selectedCone.firstOrNull()
     selectedCone?.let { cone ->
         deleteIntersectionGroupsTouchingOperands(state, setOf(cone.id))
-
+        deleteCone(state, cone)
     }
     val selectedSoRId = state.selectedSolidOfRevolutionId
     if (selectedSoRId != null) {
@@ -298,7 +575,7 @@ fun deleteSelected(state: MongeState) {
     val selectedSphere3D = state.selectedSpheres3D.firstOrNull()
     selectedSphere3D?.let {sphere ->
         deleteIntersectionGroupsTouchingOperands(state, setOf(sphere.id))
-
+        deleteSphere3D(state, sphere)
 
     }
     val selectedHelpSegment = state.selectedSegmentsPudorys.firstOrNull()
@@ -314,7 +591,7 @@ fun deleteSelected(state: MongeState) {
     val selectedCylinder = state.selectedCylinder.firstOrNull()
     selectedCylinder?.let { cyl ->
         deleteIntersectionGroupsTouchingOperands(state, setOf(cyl.id))
-
+        deleteCylinder(state, cyl)
     }
     val selectedPolygon = state.selectedPolygons.firstOrNull()
     selectedPolygon?.let{ pol ->
@@ -391,5 +668,3 @@ fun deleteSelected(state: MongeState) {
 
     clearSelection(state)
 }
-
-// Vyříznuto: deleteIntersectionGroup, deleteSegmentSolid – mazání objektů, které web nemá.

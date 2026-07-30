@@ -1,6 +1,6 @@
 package monge.input.selection
-
 import utils.System
+
 import model.CompletionRequest
 import model.DrawingModeMonge
 import model.Mongeobjects
@@ -13,6 +13,8 @@ import model.classes.Point3DPudorys
 import monge.input.combineprojections.handleCombineProjections
 import monge.input.combineprojections.handlePlaneFromTracePickPointClick
 import monge.input.planeobjects.planelift.decideObjectForLift
+import monge.input.quadrics.conicalsurface.handleConicalToolClick
+import monge.input.solids.handlePyramidToolClick
 import state.MongeState
 import kotlin.math.abs
 
@@ -31,12 +33,12 @@ fun toggleSelection(
     if (state.drawobjects == Mongeobjects.CONE){
         if(point.parent!=null){
         state.pendingApex3DId = point.parent!!.id
-
+        handleConicalToolClick(state)
     }}
     if (state.drawobjects == Mongeobjects.PYRAMID){
         if(point.parent!=null){
         state.pendingPyramidApexId = point.parent!!.id
-
+        handlePyramidToolClick(state, state.projectionMode == ProjectionMode.AXO)
     }}
     if (
         pending is CompletionRequest.Point3DFromProjections &&
@@ -140,12 +142,12 @@ fun toggleSelectionPudorys(
     if (state.drawobjects == Mongeobjects.CONE){
         if(point.parent!=null){
             state.pendingApex3DId = point.parent!!.id
-
+            handleConicalToolClick(state)
         }}
     if (state.drawobjects == Mongeobjects.PYRAMID){
         if(point.parent!=null){
             state.pendingPyramidApexId = point.parent!!.id
-
+            handlePyramidToolClick(state, state.projectionMode == ProjectionMode.AXO)
         }}
     state.deferSelectionUntil = System.currentTimeMillis() + 100
     handlePlaneFromTracePickPointClick(state)
@@ -236,12 +238,12 @@ fun toggleSelectionBokorys(
     if (state.drawobjects == Mongeobjects.CONE){
         if(point.parent!=null){
             state.pendingApex3DId = point.parent!!.id
-
+            handleConicalToolClick(state)
         }}
     if (state.drawobjects == Mongeobjects.PYRAMID){
         if(point.parent!=null){
             state.pendingPyramidApexId = point.parent!!.id
-
+            handlePyramidToolClick(state, state.projectionMode == ProjectionMode.AXO)
         }}
     state.deferSelectionUntil = System.currentTimeMillis() + 100
     handlePlaneFromTracePickPointClick(state)
@@ -314,12 +316,12 @@ fun toggleSelectionAxo(
     if (state.drawobjects == Mongeobjects.CONE){
         if(point.parent!=null){
             state.pendingApex3DId = point.parent!!.id
-
+            handleConicalToolClick(state)
         }}
     if (state.drawobjects == Mongeobjects.PYRAMID){
         if(point.parent!=null){
             state.pendingPyramidApexId = point.parent!!.id
-
+            handlePyramidToolClick(state, state.projectionMode == ProjectionMode.AXO)
         }}
     state.deferSelectionUntil = System.currentTimeMillis() + 100
     handlePlaneFromTracePickPointClick(state)

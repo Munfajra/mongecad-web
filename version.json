@@ -1,57 +1,47 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "downloadUrl": "https://mongecad.cz/stazeni.html",
   "releaseUrl": "https://mongecad.cz/stazeni.html",
   "releaseNotesUrl": "https://mongecad.cz/changelog.html",
   "changelog": [
     {
-      "title": "Novinky",
+      "title": "Vestavěné 3D okno",
       "items": [
-        "Přidáno menu pro tisk výkresu, dostupné přes Ctrl+P nebo z hlavního panelu programu. Dialog přebírá momentální nastavení velikosti papíru.",
-        "Přidána funkce PŘÍMKOVÉ PLOCHY. Pro vytvoření zvolte tři řídicí prostorové křivky.",
-        "Řídicí křivky mohou být přímky, kuželosečky, obecné křivky nebo rovina jako nevlastní přímka pro vytvoření konoidu.",
-        "Zvlášť je podporován i kulový konoid daný přímkou, kulovou plochou a rovinou.",
-        "Podporovány jsou kuželosečkové válcové plochy a kuželosečkové konoidy (kruhový, eliptický, parabolický a hyperbolický).",
-        "Podporovány jsou zborcený hyperboloid, hyperbolický paraboloid a šroubový konoid.",
-        "Podporovány jsou speciální typy jako plocha Štramberské trúby, Whitneyho deštník, Plückerův a Küpperův konoid nebo Montpellierský oblouk.",
-        "Ostatní konoidy stupně vyššího než 3 je možné vytvořit pomocí obecné křivky.",
-        "Podporován je kulový konoid daný přímkou, řídicí rovinou nebo průmětnou a kulovou plochou.",
-        "Všechny přímkové plochy podporují nástroj PRŮNIK OBJEKTŮ."
+        "OpenGL 3D okno se nyní ve výchozím nastavení otevírá uvnitř hlavního okna aplikace.",
+        "Při trhání obrazu, nesprávném vykreslení nebo jiných artefaktech lze vestavěné okno vypnout v nastavení a používat původní externí okno.",
+        "Objekty ve 3D výkresu nyní reagují na tmavý a světlý režim, aby zůstaly správně viditelné.",
+        "Vedle voleb pohledů přibylo tlačítko Reset, které vrátí kameru náhledu do výchozí polohy."
       ]
     },
     {
-      "title": "Opravy",
+      "title": "MongeCAD Web",
       "items": [
-        "Pomocné přímky v režimu monge už řeší průsečíky i s objekty v druhé průmětně.",
-        "Kolmá válcová plocha: klik na elipsu v nárysu už neumístí horní podstavu týmž klikem; výběr a umístění jsou opět dva kroky.",
-        "Opravena výplň válcových ploch s degenerovaným průmětem podstavy, kde chyběl roh výplně.",
-        "Opraveny prohozené poloosy u osově zarovnaných řídicích elips, které způsobovaly špatný tvar horní podstavy válce a obrysů kužele či válce.",
-        "Skrytí os v axo režimu nyní skryje také axo trojúhelník.",
-        "Při konstrukci stop rovin, kružnic a elips se nyní kurzor přichytává k horizontálním a vertikálním směrům, je-li pravý kurzor dostatečně blízko.",
-        "V axo režimu se nyní kurzor při konstrukcích přichytává na rovnoběžky s osami v dané průmětně.",
-        "Doplnění přímek přes bokorysnou projekci už v povolených případech nevrací chybovou hlášku.",
-        "Tlačítko pro doplnění průmětů už reaguje okamžitě.",
-        "Soubory .monge mají po instalaci v Linuxu ikonu MongeCAD.",
-        "Výběr objektů je plynulejší napříč všemi režimy.",
-        "V rýsování v rovině se nyní správně detekují mnohoúhelníky.",
-        "Opravena funkčnost klávesových zkratek po přejmenování objektu v postranním menu."
+        "Přibyla verze aplikace s Mongeovým promítáním a rýsováním v rovině, kterou lze spustit přímo v prohlížeči.",
+        "Soubory z webové a desktopové aplikace jsou vzájemně kompatibilní.",
+        "3D náhled je vykreslován pomocí WebGL."
       ]
     },
     {
-      "title": "Nákresna",
+      "title": "Hlášení chyb",
       "items": [
-        "Přidány vrcholy axonometrického trojúhelníku jako needitovatelné body X, Y, Z."
+        "Po zachycené chybě se zobrazí dialog s celým textem hlášení a možností odeslat jej autorovi.",
+        "Odeslání je dobrovolné; bez výslovného souhlasu hlášení neopustí počítač a nikdy neobsahuje obsah výkresu.",
+        "K hlášení lze připojit popis situace a kontakt pro doplňující dotaz."
       ]
     },
     {
-      "title": "3D okno",
+      "title": "Licence",
       "items": [
-        "OpenGL čárkované části jsou tenčí a mají hustší vzor se stálou délkou při zoomování kamery.",
-        "Objekty v pravém postranním seznamu lze rozkliknout, obsahují-li více částí.",
-        "Editace objektů má přehlednější a sjednocené menu.",
-        "Horní panel je přehlednější."
+        "S aplikací se nyní dodává úplný přehled komponent třetích stran (THIRD-PARTY-NOTICES.md) a znění jejich licencí.",
+        "Licenční ujednání upřesňuje bezplatné použití i šíření, komponenty třetích stran a kontrolu aktualizací."
+      ]
+    },
+    {
+      "title": "Jádro",
+      "items": [
+        "Aplikace byla povýšena na Kotlin 2.2.21 a Compose 1.9.3."
       ]
     }
   ],
-  "publishedAt": "2026-07-24"
+  "publishedAt": "2026-07-30"
 }

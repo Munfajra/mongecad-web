@@ -4,6 +4,14 @@ import androidx.compose.ui.geometry.Offset
 import model.DrawingModeMonge
 import model.Mongeobjects
 import model.ProjectionMode
+import monge.input.ruledsurface.handleRuledSurfaceSelection
+import monge.input.meridian.solidOfRevolutionNarys
+import monge.input.meridian.solidOfRevolutionPudorys
+import monge.input.quadrics.conicalsurface.handleConicalToolClick
+import monge.input.quadrics.cylindricalsurface.handleCylindricalToolClick
+import monge.input.quadrics.cylindricalsurface.handlePerpendicularCylinderClick
+import monge.input.solids.handlePrismToolClick
+import monge.input.solids.handlePyramidToolClick
 import state.MongeState
 
 /**
@@ -14,12 +22,12 @@ import state.MongeState
  */
 fun advancePendingLineOrPointConstruction(state: MongeState) {
     when (state.drawobjects) {
-        Mongeobjects.HELIX -> Unit
-        Mongeobjects.RULED_SURFACE -> Unit
+        Mongeobjects.HELIX -> Unit // šroubovici web nemá
+        Mongeobjects.RULED_SURFACE -> handleRuledSurfaceSelection(state)
         Mongeobjects.SOLID_OF_REVOLUTION -> {
             when (state.mongeMode) {
-                DrawingModeMonge.PUDORYS -> Unit
-                DrawingModeMonge.NARYS -> Unit
+                DrawingModeMonge.PUDORYS -> solidOfRevolutionPudorys(state)
+                DrawingModeMonge.NARYS -> solidOfRevolutionNarys(state)
             }
         }
         else -> {}
@@ -29,15 +37,24 @@ fun advancePendingLineOrPointConstruction(state: MongeState) {
 /** Stejný "druhý krok navíc" jako výše, ale pro výběr kuželosečky (podstava kužele/válce, poledník rotační plochy). */
 fun advancePendingConicConstruction(state: MongeState) {
     when (state.drawobjects) {
-        Mongeobjects.RULED_SURFACE -> Unit
+        Mongeobjects.RULED_SURFACE -> handleRuledSurfaceSelection(state)
         Mongeobjects.SOLID_OF_REVOLUTION -> {
             when (state.mongeMode) {
-                DrawingModeMonge.PUDORYS -> Unit
-                DrawingModeMonge.NARYS -> Unit
+                DrawingModeMonge.PUDORYS -> solidOfRevolutionPudorys(state)
+                DrawingModeMonge.NARYS -> solidOfRevolutionNarys(state)
             }
         }
-        Mongeobjects.CONE -> Unit
-        // CONE/CYLINDER web nemá – kvadriky jsou vyřazená featura.
+        Mongeobjects.CONE -> handleConicalToolClick(state)
+        Mongeobjects.CYLINDER -> {
+            when (state.cylinderPhase) {
+                CylinderPhase.PICK_CONIC, CylinderPhase.PICK_DIRECTION, CylinderPhase.PICK_PLANE ->
+                    handleCylindricalToolClick(state)
+                CylinderPhase.PICK_CONIC_PERP ->
+                    // logicalCursor se v této fázi vůbec nepoužívá (potřebuje ho až PICK_CENTER_PERP).
+                    handlePerpendicularCylinderClick(state, Offset.Zero)
+                CylinderPhase.IDLE, CylinderPhase.PICK_CENTER_PERP -> {}
+            }
+        }
         else -> {}
     }
 }
@@ -46,9 +63,9 @@ fun advancePendingConicConstruction(state: MongeState) {
 fun advancePendingPolygonConstruction(state: MongeState) {
     val axoConstruction = state.projectionMode == ProjectionMode.AXO
     when (state.drawobjects) {
-        Mongeobjects.PYRAMID -> Unit
+        Mongeobjects.PYRAMID -> handlePyramidToolClick(state, axoConstruction)
         // logicalCursor se v první fázi (výběr podstavy) nepoužívá, jen ve druhé (výška).
-        Mongeobjects.PRISM -> Unit
+        Mongeobjects.PRISM -> handlePrismToolClick(state, Offset.Zero, axoConstruction)
         else -> {}
     }
 }

@@ -1,6 +1,7 @@
 package monge.input.segments
 
 import utils.System
+import monge.input.quadrics.detectQuadricSurfaceAfter2DSegmentAdd
 import androidx.compose.ui.geometry.Offset
 import serialization.commitSnapshot
 import model.*
@@ -76,7 +77,7 @@ fun handleSingleSegmentNarysClick (
             state.pointsNarys.add(start)
             state.pointsNarys.add(end)
             state.segmentsNarys.add(segment)
-
+            detectQuadricSurfaceAfter2DSegmentAdd(state)
             commitSnapshot(state)
 
         }
@@ -164,7 +165,7 @@ fun handleSingleSegmentPudorysClick(
             if (endPoint == null) { state.pointsPudorys.add(end)}
 
             state.segmentsPudorys.add(segment)
-
+            detectQuadricSurfaceAfter2DSegmentAdd(state)
             commitSnapshot(state)
 
         }

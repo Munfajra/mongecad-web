@@ -1,6 +1,5 @@
 package draw.mongescreen.objects.orth
 
-import geometry.sampleIntersectionHyperbolaBranchArc3D
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -21,6 +20,8 @@ import draw.mongescreen.objects.HOVER_HALO_EXTRA_PX
 import draw.mongescreen.objects.PENDING_HALO_EXTRA_PX
 import draw.mongescreen.objects.SELECTION_HALO_EXTRA_PX
 import model.*
+import geometry.sampleIntersectionHyperbolaBranchArc3D
+import monge.input.ruledsurface.isPendingRuledSurfaceDirectrix
 import monge.input.planeobjects.conicsections.conicCenter2D
 import monge.input.planeobjects.conicsections.extremeEnds2D
 import monge.input.planeobjects.conicsections.liftXYtoPlane
@@ -44,14 +45,15 @@ fun DrawScope.drawAllConicsPudorys(state: MongeState,pxPerPt: Float, showHelpCon
                 LineStyle.DashDot -> PathEffect.dashPathEffect(floatArrayOf(20f, 10f, 4f, 10f), 0f)
             }
             val isPending = if (conic.parent != null) {
-                
+                isPendingRuledSurfaceDirectrix(state, conic.parent?.id ?: conic.parentId) ||
                         state.pendingConic3DId == conic.parent?.id ||
                         state.activeParentConic3DIdForEllipseArc == conic.parent?.id ||
                         state.activeConicIdForArc == conic.id ||
                         state.activeConicIdForArc == conic.id ||
                         state.activeConicIdForArc == conic.id
             } else if (conic.parent == null) {
-                state.activeConicIdForArc == conic.id ||
+                isPendingRuledSurfaceDirectrix(state, conic.parentId) ||
+                        state.activeConicIdForArc == conic.id ||
                         state.activeConicIdForArc == conic.id ||
                         state.activeConicIdForArc == conic.id
             } else false
@@ -594,12 +596,13 @@ fun DrawScope.drawAllConicsNarys(state: MongeState,pxPerPt: Float, showHelpConic
                 LineStyle.DashDot -> PathEffect.dashPathEffect(floatArrayOf(20f, 10f, 4f, 10f), 0f)
             }
             val isPending = if(conic.parent != null) {
-                
+                isPendingRuledSurfaceDirectrix(state, conic.parent?.id ?: conic.parentId) ||
                     state.pendingConic3DId == conic.parent?.id||
                     state.activeParentConic3DIdForEllipseArc==conic.parent?.id||state.activeConicIdForArc == conic.id||
                     state.activeConicIdForArc==conic.id || state.activeConicIdForArc==conic.id
             } else if (conic.parent == null) {
-                state.activeConicIdForArc == conic.id||
+                isPendingRuledSurfaceDirectrix(state, conic.parentId) ||
+                    state.activeConicIdForArc == conic.id||
                     state.activeConicIdForArc==conic.id || state.activeConicIdForArc==conic.id} else false
             val isSelected =      state.selectedConicsPudorys.any { it.id == conic.id } ||    // přímo vybraná 2D
                     state.selectedConicsNarys.any { it.id == conic.id }

@@ -46,3 +46,18 @@ class ImInt(private var data: Int = 0) {
 expect object System {
     fun currentTimeMillis(): Long
 }
+
+/**
+ * Náhrada za `kotlin.synchronized`. Wasm běží v jednom vlákně, takže zámek
+ * nemá co hlídat – blok se jen spustí. Musí zůstat `inline`, protože portovaný
+ * kód uvnitř bloku používá nelokální `return`.
+ */
+inline fun <R> synchronized(lock: Any, block: () -> R): R = block()
+
+/**
+ * Náhrada za `java.util.WeakHashMap`. Slabé reference wasm nenabízí, takže jde
+ * o obyčejnou mapu – klíč (MongeState) drží naživu i po zavření záložky.
+ * Instancí MongeState je řádově tolik, kolik má uživatel záložek, takže je to
+ * přijatelné; kdyby vadilo, musí volající cache při zavření záložky vyprázdnit.
+ */
+class WeakHashMap<K, V> : MutableMap<K, V> by mutableMapOf()
