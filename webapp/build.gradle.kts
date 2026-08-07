@@ -16,7 +16,7 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "mongecad-web.js"
 
-                // Dev server servíruje i kořen webu (aplikace.html, style.css, img/),
+                // Dev server servíruje i kořen webu (aplikace-spustit.html, style.css, img/),
                 // aby šla appka zkoušet v reálné stránce, ne jen samostatně.
                 // Zároveň posílá u .wasm správný Content-Type – vestavěný server
                 // IntelliJ ho neposílá a WebAssembly.instantiateStreaming pak selže.
@@ -61,7 +61,7 @@ compose.resources {
 }
 
 /**
- * Nasazení buildu do `app/` v kořeni webu, odkud ho načítá `aplikace.html`.
+ * Nasazení buildu do `app/` v kořeni webu, odkud ho načítá `aplikace-spustit.html`.
  * Vlastní index.html z distribuce se nekopíruje – stránku aplikace drží web.
  */
 tasks.register<Sync>("deployToSite") {

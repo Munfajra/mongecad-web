@@ -11,7 +11,7 @@ package ui
  *     nemůže potlačit, přitom Esc v MongeCADu ruší rozpracovanou konstrukci.
  *  2. **CSS třída `app-maximized`** – roztáhne rám aplikace přes celé okno
  *     stránky. Pravidlo pro ni je ve `style.css` webu, takže má efekt jen na
- *     `aplikace.html`. Na vývojovém serveru appka celé okno vyplňuje sama, tam
+ *     `aplikace-spustit.html`. Na vývojovém serveru appka celé okno vyplňuje sama, tam
  *     tahle vrstva nemá co dělat a jen se přeskočí.
  *
  * Dřív tu byla jen vrstva 2. Na vývojovém serveru proto tlačítko tiše nedělalo

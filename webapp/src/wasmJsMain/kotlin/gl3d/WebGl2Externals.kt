@@ -201,7 +201,7 @@ internal object GlConst {
 // --- pomocné JS funkce ---------------------------------------------------
 
 @JsFun(
-    // `powerPreference` se schválně nenastavuje: `aplikace.html` přepisuje
+    // `powerPreference` se schválně nenastavuje: `aplikace-spustit.html` přepisuje
     // `getContext` a všem WebGL kontextům vnucuje `low-power`, protože Vivaldi
     // ten výkonný kontext při přehrávání videa na jiné kartě zahazuje.
     """(canvas, stencil, antialias) => canvas.getContext('webgl2', {

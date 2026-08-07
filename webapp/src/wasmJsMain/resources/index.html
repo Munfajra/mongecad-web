@@ -114,7 +114,7 @@
     </div>
 </div>
 <script>
-    // Průběh stahování .wasm; podrobný komentář je u stejné vrstvy v aplikace.html.
+    // Průběh stahování .wasm; podrobný komentář je u stejné vrstvy v aplikace-spustit.html.
     (() => {
         const overlay = document.getElementById("app-loading");
         const bar = document.getElementById("app-loading-bar");
@@ -124,7 +124,7 @@
         const megabytes = (bytes) =>
             (bytes / (1024 * 1024)).toFixed(1).replace(".", ",") + " MB";
 
-        // Přeměření scény po startu; podrobný komentář je v aplikace.html.
+        // Přeměření scény po startu; podrobný komentář je v aplikace-spustit.html.
         const nudgeLayout = () => window.dispatchEvent(new Event("resize"));
         if (window.visualViewport) {
             window.visualViewport.addEventListener("resize", nudgeLayout);
@@ -207,7 +207,7 @@
         const navigationButton = event.button === 1 || event.button === 2;
         const navigationDrag = (event.buttons & 6) !== 0;
         globalThis.__mongecadCanvasPointerType = event.pointerType || "mouse";
-        // Typ posledního stisku – podrobný komentář je v aplikace.html.
+        // Typ posledního stisku – podrobný komentář je v aplikace-spustit.html.
         if (event.type === "pointerdown") {
             globalThis.__mongecadCanvasDownPointerType = event.pointerType || "mouse";
         }

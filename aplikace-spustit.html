@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>MongeCAD Web — MongeCAD</title>
+
+  <meta
+          name="description"
+          content="MongeCAD přímo v prohlížeči: Mongeovo promítání a rýsování v rovině bez instalace. Odlehčená verze desktopové aplikace pro deskriptivní geometrii."
+  >
+
+  <meta property="og:site_name" content="MongeCAD">
+
+  <link rel="icon" type="image/svg+xml" href="img/icon-mc.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page app-maximized-host">
+
+<header class="site">
+  <div class="wrap">
+    <div class="site-top">
+      <a class="brand" href="index.html"><img src="img/icon-mc.svg" alt="">MongeCAD</a>
+      <a class="github-link" href="https://github.com/Munfajra/MongeCAD-releases" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.69-1.28-1.69-1.04-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.78 2.71 1.26 3.37.97.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.2.66.79.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg></a>
+      <a class="email-link" href="mailto:supportmongecad@gmail.com" aria-label="E-mail" title="supportmongecad@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></a>
+    </div>
+    <nav class="tabs">
+      <a href="index.html">Domů</a>
+      <a href="stazeni.html">Stažení</a>
+      <a href="o-programu.html">O programu</a>
+      <a href="navody.html">Návody</a>
+      <a class="active" href="aplikace.html">MongeCAD Web<span class="tab-badge">BETA</span></a>
+    </nav>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="app-frame">
+    <!-- Appka startuje rovnou maximalizovaná; zpět do stránky se přepne
+         tlačítkem v její liště (viz ui/Fullscreen.kt). -->
+    <div id="webApp" class="app-maximized" role="application" aria-label="MongeCAD online"></div>
+
+    <!-- Než se stáhne přes 16 MB Wasm, byla by stránka jinak jen prázdná
+         plocha. Skript dole vrstvu plní průběhem stahování a aplikace ji po
+         prvním vykresleném snímku sama schová. -->
+    <div id="app-loading" class="app-loading" role="status" aria-live="polite">
+      <div class="app-loading-box">
+        <img class="app-loading-icon" src="img/icon-mc.svg" alt="" width="72" height="72">
+        <strong class="app-loading-title">Spouštím MongeCAD Web</strong>
+        <div class="app-loading-bar is-indeterminate" id="app-loading-bar">
+          <div class="app-loading-fill" id="app-loading-fill"></div>
+        </div>
+        <p class="app-loading-note" id="app-loading-note">Načítám aplikaci…</p>
+      </div>
+    </div>
+
+    <noscript>
+      <p class="app-fallback">Pro spuštění aplikace je potřeba povolit JavaScript.</p>
+    </noscript>
+  </div>
+</main>
+
+<script>
+    // Na telefonech se ovládací prvky aplikace do šířky okna nevejdou a
+    // překrývají plátno – appka je tam prakticky neovladatelná. Rozvržení
+    // proto vynutíme na tabletovou šířku; prohlížeč stránku oddálí a chová
+    // se pak stejně jako na tabletu, kde je použitelná. Je to totéž, co dělá
+    // přepínač „Zobrazit jako na počítači“, jen si o to řekne stránka sama –
+    // zapnout ten přepínač z kódu nejde.
+    //
+    // Tablety zůstávají beze změny: rozhoduje kratší strana displeje, takže
+    // práh trefí telefony (do ~430 px) a tabletů (od ~768 px) se nedotkne.
+    (() => {
+        const PHONE_MAX = 700;
+        const FORCED_WIDTH = 900;
+        const meta = document.querySelector('meta[name="viewport"]');
+        if (!meta || !window.screen) return;
+        const shorterEdge = Math.min(screen.width, screen.height);
+        if (shorterEdge > 0 && shorterEdge < PHONE_MAX) {
+            meta.setAttribute("content", "width=" + FORCED_WIDTH);
+        }
+    })();
+
+    // Výška hlavičky webu se měří za běhu – appka pod ní dostane přesně
+    // zbytek okna. Napevno zapsaná hodnota by se rozešla při jiné velikosti
+    // písma nebo když se navigace zalomí na dva řádky.
+    (() => {
+        const header = document.querySelector("header.site");
+        const apply = () => document.documentElement.style.setProperty(
+            "--site-header-h", header.getBoundingClientRect().height + "px"
+        );
+        apply();
+        if (window.ResizeObserver) new ResizeObserver(apply).observe(header);
+        window.addEventListener("resize", apply);
+    })();
+
+    // Compose 1.9 předává navigator.languages přímo do Intl.Locale.
+    // Linux může vrátit např. "en-US@posix", což není platný BCP-47 tag
+    // a bez normalizace zastaví celou první kompozici.
+    (() => {
+        const normalizeLocale = (value) => {
+            const candidate = String(value || "")
+                .split("@", 1)[0]
+                .replaceAll("_", "-")
+                .trim();
+
+            if (!candidate || candidate === "C" || candidate === "POSIX") {
+                return null;
+            }
+
+            try {
+                return new Intl.Locale(candidate).baseName;
+            } catch (_) {
+                return null;
+            }
+        };
+
+        const browserLocales = Array.from(navigator.languages || [navigator.language]);
+        const safeLocales = browserLocales
+            .map(normalizeLocale)
+            .filter((value, index, values) => value && values.indexOf(value) === index);
+
+        if (safeLocales.length === 0) {
+            safeLocales.push("cs-CZ");
+        }
+
+        Object.defineProperty(navigator, "language", {
+            configurable: true,
+            get: () => safeLocales[0],
+        });
+        Object.defineProperty(navigator, "languages", {
+            configurable: true,
+            get: () => safeLocales,
+        });
+    })();
+
+    // Canvas používá pravý/prostřední drag pro pan a vlastní touch gesta.
+    // Potlačíme kontextové menu, autoscroll prostředního tlačítka a nativní
+    // navigační gesto tam, kde prohlížeč respektuje preventDefault().
+    (() => {
+        const webApp = document.getElementById("webApp");
+        const trackCanvasPointer = (event) => {
+            const navigationButton = event.button === 1 || event.button === 2;
+            const navigationDrag = (event.buttons & 6) !== 0;
+            globalThis.__mongecadCanvasPointerType = event.pointerType || "mouse";
+            // Typ posledního stisku, ne poslední události vůbec: stylus v dosahu
+            // displeje sype pointermove i bez doteku a aplikace by pak každé
+            // ťuknutí prstem považovala za dotek hrotem.
+            if (event.type === "pointerdown") {
+                globalThis.__mongecadCanvasDownPointerType = event.pointerType || "mouse";
+            }
+            globalThis.__mongecadCanvasNavigationActive =
+                event.type !== "pointerup" &&
+                event.type !== "pointercancel" &&
+                (navigationButton || navigationDrag);
+        };
+        const preventCanvasMouseAction = (event) => {
+            const navigationButton = event.button === 1 || event.button === 2;
+            const navigationDrag = (event.buttons & 6) !== 0;
+            if (navigationButton || navigationDrag) event.preventDefault();
+        };
+
+        webApp.addEventListener("contextmenu", preventCanvasMouseAction, true);
+        webApp.addEventListener("auxclick", preventCanvasMouseAction, true);
+        webApp.addEventListener("mousedown", preventCanvasMouseAction, true);
+        webApp.addEventListener("mousemove", preventCanvasMouseAction, true);
+        webApp.addEventListener("mouseup", preventCanvasMouseAction, true);
+        webApp.addEventListener("pointerdown", trackCanvasPointer, true);
+        webApp.addEventListener("pointermove", trackCanvasPointer, true);
+        webApp.addEventListener("pointerup", trackCanvasPointer, true);
+        webApp.addEventListener("pointercancel", trackCanvasPointer, true);
+    })();
+
+    // Skiko kreslí přes WebGL2. Vivaldi/Chromium může při spuštění videa na
+    // jiné kartě uvolnit výkonný GPU kontext. Preferujeme úsporný kontext
+    // (pro 2D rýsování stačí) a dovolíme prohlížeči ztracený kontext obnovit.
+    (() => {
+        const originalGetContext = HTMLCanvasElement.prototype.getContext;
+        let recoveryTimer = null;
+
+        const hideRecovery = () => {
+            clearTimeout(recoveryTimer);
+            recoveryTimer = null;
+            document.querySelector(".app-render-recovery")?.remove();
+        };
+
+        const showRecovery = () => {
+            if (document.querySelector(".app-render-recovery")) return;
+            const overlay = document.createElement("div");
+            overlay.className = "app-render-recovery";
+            overlay.setAttribute("role", "alert");
+
+            const content = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = "Prohlížeč přerušil vykreslování";
+            const text = document.createElement("div");
+            text.textContent = "Zkus zavřít náročné video na jiné kartě a obnovit aplikaci.";
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Obnovit aplikaci";
+            button.addEventListener("click", () => window.location.reload());
+
+            content.append(title, text, button);
+            overlay.appendChild(content);
+            document.querySelector(".app-frame")?.appendChild(overlay);
+        };
+
+        const monitorContext = (canvas) => {
+            if (canvas.__mongecadContextMonitor) return;
+            canvas.__mongecadContextMonitor = true;
+            canvas.addEventListener("webglcontextlost", (event) => {
+                event.preventDefault();
+                clearTimeout(recoveryTimer);
+                recoveryTimer = setTimeout(showRecovery, 1500);
+            });
+            canvas.addEventListener("webglcontextrestored", () => {
+                hideRecovery();
+                window.dispatchEvent(new Event("resize"));
+            });
+        };
+
+        HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+            const isWebGl = type === "webgl" || type === "webgl2";
+            if (!isWebGl) return originalGetContext.call(this, type, attributes);
+
+            monitorContext(this);
+            const stableAttributes = Object.assign({}, attributes || {}, {
+                powerPreference: "low-power",
+            });
+            return originalGetContext.call(this, type, stableAttributes);
+        };
+    })();
+
+    // Přeměření scény. Compose reaguje jen na `resize` okna, ne na změnu
+    // kontejneru ani viditelné části stránky – tu na tabletech mění vysouvací
+    // lišta prohlížeče. Bez tohohle popostrčení zůstane scéna v rozměru,
+    // který platil při startu.
+    const nudgeLayout = () => window.dispatchEvent(new Event("resize"));
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", nudgeLayout);
+        window.visualViewport.addEventListener("scroll", nudgeLayout);
+    }
+    window.addEventListener("orientationchange", () => setTimeout(nudgeLayout, 100));
+    window.addEventListener("pageshow", nudgeLayout);
+
+
+    // Načítací vrstva. Kotlin/Wasm i Skiko si své .wasm stahují samy přes
+    // fetch(), takže jediné místo, kde jde průběh odchytit, je fetch samotný.
+    // Měří se na klonu odpovědi – originál putuje do
+    // WebAssembly.instantiateStreaming nedotčený, aby chyba v měření nemohla
+    // shodit spuštění aplikace.
+    (() => {
+        const overlay = document.getElementById("app-loading");
+        const bar = document.getElementById("app-loading-bar");
+        const fill = document.getElementById("app-loading-fill");
+        const note = document.getElementById("app-loading-note");
+        if (!overlay || !bar || !fill || !note) return;
+
+        const megabytes = (bytes) =>
+            (bytes / (1024 * 1024)).toFixed(1).replace(".", ",") + " MB";
+
+        const showPulse = (text) => {
+            bar.classList.add("is-indeterminate");
+            fill.style.width = "";
+            note.textContent = text;
+        };
+        const showProgress = (ratio, text) => {
+            bar.classList.remove("is-indeterminate");
+            fill.style.width = Math.round(Math.min(Math.max(ratio, 0), 1) * 100) + "%";
+            note.textContent = text;
+        };
+
+        let finished = false;
+        let slowTimer = 0;
+        const finish = () => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(slowTimer);
+            showProgress(1, "Hotovo");
+            overlay.classList.add("is-done");
+            setTimeout(() => overlay.remove(), 400);
+
+            // Compose si rozměr scény bere z okna a měří ho při startu. Tehdy
+            // ale stránka ještě nemusí mít konečnou výšku (lišta prohlížeče,
+            // dopočítané dvh), takže scéna zůstane vyšší než okno a spodek
+            // aplikace – lišta výkresů, ovladač zoomu i dialogy – skončí pod
+            // okrajem obrazovky. Neviditelný dialog přitom pohltí veškerý
+            // vstup, takže to vypadá, že appka přestala reagovat.
+            nudgeLayout();
+            requestAnimationFrame(nudgeLayout);
+            setTimeout(nudgeLayout, 300);
+        };
+
+        // Volá aplikace po prvním vykresleném snímku (viz ui/AppLoading.kt).
+        globalThis.__mongecadAppReady = finish;
+
+        slowTimer = setTimeout(() => {
+            if (!finished) {
+                note.textContent =
+                    "Načítání trvá déle než obvykle. Zkuste stránku obnovit.";
+            }
+        }, 40000);
+
+        let received = 0;
+        let expected = 0;
+        let measurable = true;
+        let pending = 0;
+
+        const render = () => {
+            if (finished) return;
+            if (measurable && expected > 0) {
+                showProgress(
+                    received / expected,
+                    `Stahuji aplikaci… ${megabytes(received)} z ${megabytes(expected)}`
+                );
+            } else {
+                showPulse(`Stahuji aplikaci… ${megabytes(received)}`);
+            }
+        };
+
+        const trackWasm = (response) => {
+            const reader = response.body && response.body.getReader
+                ? response.body.getReader()
+                : null;
+            if (!reader) return;
+
+            // GitHub Pages posílá .wasm zabalený, takže Content-Length je
+            // velikost po kompresi, kdežto fetch vrací už rozbalené bajty.
+            // Procenta by pak lhala – zůstane počítadlo stažených MB.
+            const declared = Number(response.headers.get("content-length"));
+            if (response.headers.get("content-encoding") || !declared) {
+                measurable = false;
+            } else {
+                expected += declared;
+            }
+
+            pending += 1;
+            const pump = () => reader.read().then(({ done, value }) => {
+                if (done) {
+                    pending -= 1;
+                    if (pending === 0 && !finished) showPulse("Spouštím aplikaci…");
+                    return;
+                }
+                received += value.length;
+                render();
+                return pump();
+            }).catch(() => {
+                pending -= 1;
+            });
+            pump();
+        };
+
+        const originalFetch = globalThis.fetch;
+        if (typeof originalFetch !== "function") return;
+
+        globalThis.fetch = function (input, init) {
+            const result = originalFetch.call(this, input, init);
+            const url = typeof input === "string"
+                ? input
+                : (input && input.url) || String(input || "");
+            if (finished || !url.includes(".wasm")) return result;
+
+            return result.then((response) => {
+                try {
+                    if (response.ok) trackWasm(response.clone());
+                } catch (_) { /* měření je jen kosmetika */ }
+                return response;
+            });
+        };
+    })();
+</script>
+<script>
+    // GitHub Pages cachuje soubory přibližně 10 minut. Webpack přitom při každém
+    // buildu vytvoří nový hashovaný .wasm a starý odstraní; cachovaný JS by pak
+    // žádal už neexistující Wasm a dostal místo něj HTML stránku 404. Jedinečný
+    // query parametr stojí jen zhruba 66 KiB gzip na obnovení, ale drží JS a
+    // jeho Wasm vždy ze stejného nasazení.
+    const appScript = document.createElement("script");
+    appScript.src = `app/mongecad-web.js?v=${Date.now()}`;
+    document.body.appendChild(appScript);
+</script>
+</body>
+</html>

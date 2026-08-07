@@ -402,7 +402,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space
   .dl-item { padding: 20px 18px; }
 }
 
-/* ---------- MongeCAD Web (aplikace.html) ---------- */
+/* ---------- MongeCAD Web (aplikace-spustit.html) ---------- */
 /* Appka dostane celý zbytek stránky pod hlavičkou webu – bez nadpisu,
    poznámek a patičky, aby zbylo co nejvíc místa na nákresnu.
    Stránka sama nescrolluje, scrollování si řeší appka uvnitř. */

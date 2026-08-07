@@ -1,6 +1,6 @@
 # Licence komponent třetích stran – MongeCAD Web
 
-Webová verze MongeCADu (`aplikace.html` + složka `app/`) obsahuje níže uvedené
+Webová verze MongeCADu (`aplikace-spustit.html` + složka `app/`) obsahuje níže uvedené
 komponenty třetích stran. Každá z nich podléhá vlastní licenci; jejich úplná znění
 jsou ve složce [`legal/licenses/`](legal/licenses).
 

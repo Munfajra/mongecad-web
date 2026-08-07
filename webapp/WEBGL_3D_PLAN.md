@@ -39,12 +39,12 @@ Produkční build se přestal vejít do 2 GB haldy Kotlin démona a padal na
 „Not enough memory to run compilation“; `gradle.properties` proto drží
 `kotlin.daemon.jvmargs=-Xmx4g`.
 
-**`aplikace.html` načítá bundle vždy z `app/mongecad-web.js`.**
+**`aplikace-spustit.html` načítá bundle vždy z `app/mongecad-web.js`.**
 `wasmJsBrowserDevelopmentRun` proto změny do stránky nedostane – náhled vždy
 vyžaduje `deployToSite` a pak libovolný statický server nad kořenem repa:
 
 ```bash
-cd .. && python3 -m http.server 8090   # → http://localhost:8090/aplikace.html
+cd .. && python3 -m http.server 8090   # → http://localhost:8090/aplikace-spustit.html
 ```
 
 Ověřuje se **ve Firefoxu**. Chrome dostupný přes nástroje asistenta nemá WebGL
@@ -255,7 +255,7 @@ Toto je seznam všeho, co **nelze přenést doslova**. Každá položka má ově
 | 14 | GLFW okno, vlákno, `glfwSwapBuffers`, shutdown hooky (`openglWindow.kt`, `InnitOpenGL.kt`) | — | Nahradí `rAF` smyčka + `GlCanvasHost`. Ze souboru se přenáší jen logika snapů kamery (`targetForSnap`, `beginCameraSnapAnimation`, `updateObliqueBlend`, `resetCamera`) — ta je čistě matematická. |
 | 15 | Shadery z classpath (`readResourceText`) | — | GLSL jako Kotlin konstanty. Žádný `fetch`, žádný extra roundtrip při startu. |
 | 16 | MSAA přes `GL_MULTISAMPLE` + `msaaSamples` v nastavení | — | `{ antialias: true }` v kontextu; počet vzorků prohlížeč nedává na výběr. Položku `msaaSamples` v nastavení nechat skrytou (`Settings.kt:14` už podobné položky řeší). |
-| 17 | — | **Ztráta WebGL kontextu** (přepnutí tabu, GPU reset) | `webglcontextlost`/`restored` handler s kompletní reinicializací zdrojů. `aplikace.html:189` už podobný monitor pro Skiko má — rozšířit ho. |
+| 17 | — | **Ztráta WebGL kontextu** (přepnutí tabu, GPU reset) | `webglcontextlost`/`restored` handler s kompletní reinicializací zdrojů. `aplikace-spustit.html` už podobný monitor pro Skiko má — rozšířit ho. |
 | 18 | Sdílení jednoho GL kontextu | Compose (Skiko) má svůj, my druhý | Dva WebGL kontexty na stránce jsou v pořádku (limit bývá 8–16), ale je nutné hlídat, že si nepřebíráme stav — každý má vlastní. |
 
 ---
