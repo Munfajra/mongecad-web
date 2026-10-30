@@ -1,47 +1,93 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "downloadUrl": "https://mongecad.cz/stazeni.html",
   "releaseUrl": "https://mongecad.cz/stazeni.html",
   "releaseNotesUrl": "https://mongecad.cz/changelog.html",
   "changelog": [
     {
-      "title": "Vestavěné 3D okno",
+      "title": "Lokalizace",
       "items": [
-        "OpenGL 3D okno se nyní ve výchozím nastavení otevírá uvnitř hlavního okna aplikace.",
-        "Při trhání obrazu, nesprávném vykreslení nebo jiných artefaktech lze vestavěné okno vypnout v nastavení a používat původní externí okno.",
-        "Objekty ve 3D výkresu nyní reagují na tmavý a světlý režim, aby zůstaly správně viditelné.",
-        "Vedle voleb pohledů přibylo tlačítko Reset, které vrátí kameru náhledu do výchozí polohy."
+        "MongeCAD je nyní možné používat v angličtině nebo slovenštině."
       ]
     },
     {
-      "title": "MongeCAD Web",
+      "title": "Novinky",
       "items": [
-        "Přibyla verze aplikace s Mongeovým promítáním a rýsováním v rovině, kterou lze spustit přímo v prohlížeči.",
-        "Soubory z webové a desktopové aplikace jsou vzájemně kompatibilní.",
-        "3D náhled je vykreslován pomocí WebGL."
+        "Nově lze přidat rovinu vedle rovnice i pomocí osových úseků."
       ]
     },
     {
-      "title": "Hlášení chyb",
+      "title": "Návody",
       "items": [
-        "Po zachycené chybě se zobrazí dialog s celým textem hlášení a možností odeslat jej autorovi.",
-        "Odeslání je dobrovolné; bez výslovného souhlasu hlášení neopustí počítač a nikdy neobsahuje obsah výkresu.",
-        "K hlášení lze připojit popis situace a kontakt pro doplňující dotaz."
+        "Přidány návody pro základní konstrukce v Mongeově projekci.",
+        "Návody slouží k osvojení ovládání aplikace a zopakování základních úloh."
       ]
     },
     {
-      "title": "Licence",
+      "title": "Opravy",
       "items": [
-        "S aplikací se nyní dodává úplný přehled komponent třetích stran (THIRD-PARTY-NOTICES.md) a znění jejich licencí.",
-        "Licenční ujednání upřesňuje bezplatné použití i šíření, komponenty třetích stran a kontrolu aktualizací."
-      ]
-    },
-    {
-      "title": "Jádro",
-      "items": [
-        "Aplikace byla povýšena na Kotlin 2.2.21 a Compose 1.9.3."
+        "Přepracována logika speciálního kurzoru, kdy se na některých strojích nevykresloval správně.",
+        "Aktualizovány tooltipy nástrojů, které zobrazovaly špatnou klávesovou zkratku."
       ]
     }
   ],
-  "publishedAt": "2026-07-30"
+  "changelogTranslations": {
+    "en": [
+      {
+        "title": "Localization",
+        "items": [
+          "MongeCAD can now be used in English or Slovak."
+        ]
+      },
+      {
+        "title": "New features",
+        "items": [
+          "A plane can now be added by its axis intercepts as well as by an equation."
+        ]
+      },
+      {
+        "title": "Tutorials",
+        "items": [
+          "Added tutorials for basic constructions in Monge projection.",
+          "The tutorials help you learn the controls of the application and repeat the basic tasks."
+        ]
+      },
+      {
+        "title": "Fixes",
+        "items": [
+          "Reworked the logic of the special cursor, which was not drawn correctly on some machines.",
+          "Updated tool tooltips that showed the wrong keyboard shortcut."
+        ]
+      }
+    ],
+    "sk": [
+      {
+        "title": "Lokalizácia",
+        "items": [
+          "MongeCAD je teraz možné používať v angličtine alebo slovenčine."
+        ]
+      },
+      {
+        "title": "Novinky",
+        "items": [
+          "Rovinu je teraz možné pridať okrem rovnice aj pomocou osových úsekov."
+        ]
+      },
+      {
+        "title": "Návody",
+        "items": [
+          "Pridané návody pre základné konštrukcie v Mongeovom premietaní.",
+          "Návody slúžia na osvojenie ovládania aplikácie a zopakovanie základných úloh."
+        ]
+      },
+      {
+        "title": "Opravy",
+        "items": [
+          "Prepracovaná logika špeciálneho kurzora, ktorý sa na niektorých strojoch nevykresľoval správne.",
+          "Aktualizované tooltipy nástrojov, ktoré zobrazovali nesprávnu klávesovú skratku."
+        ]
+      }
+    ]
+  },
+  "publishedAt": "2026-10-30"
 }
